@@ -1,0 +1,10 @@
+.git
+.tooling
+.dart_tool
+.pub-cache
+build
+artifacts
+data
+android/.gradle
+android/local.properties
+.idea

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Run Flutter with project-local caches so builds do not touch a host user's home.
+set -euo pipefail
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+LOCAL_FLUTTER="$ROOT/.tooling/flutter/bin/flutter"
+if [[ -x "$LOCAL_FLUTTER" ]]; then
+  FLUTTER_BIN="$LOCAL_FLUTTER"
+  export FLUTTER_ROOT="$ROOT/.tooling/flutter"
+else
+  FLUTTER_BIN="$(command -v flutter || true)"
+  if [[ -z "$FLUTTER_BIN" ]]; then
+    echo "Flutter is not available. Install Flutter or restore .tooling/flutter." >&2
+    exit 127
+  fi
+  unset FLUTTER_ROOT
+fi
+export PUB_CACHE="$ROOT/.tooling/pub"
+export GRADLE_USER_HOME="$ROOT/.tooling/gradle"
+export ANDROID_USER_HOME="$ROOT/.tooling/android"
+export XDG_CONFIG_HOME="$ROOT/.tooling/config"
+export FLUTTER_SUPPRESS_ANALYTICS=true
+export DASH__SUPPRESS_ANALYTICS=true
+export CI=true
+exec "$FLUTTER_BIN" "$@"
