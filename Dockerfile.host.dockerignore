@@ -1,0 +1,7 @@
+**
+!Dockerfile.host
+!backend/
+!backend/server.py
+!build/
+!build/web/
+!build/web/**

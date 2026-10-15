@@ -50,3 +50,6 @@ app.*.map.json
 backend/data/
 __pycache__/
 artifacts/
+android/.kotlin/
+.env
+data/

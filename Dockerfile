@@ -3,7 +3,7 @@ WORKDIR /src
 COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
 COPY . .
-RUN flutter build web --release
+RUN flutter build web --release --no-web-resources-cdn
 
 FROM python:3.12-slim AS runtime
 WORKDIR /app

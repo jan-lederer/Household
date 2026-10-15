@@ -548,22 +548,25 @@ class _HomePageState extends State<HomePage> {
                     for (var i = 0; i < 3; i++)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          selected: page == i,
-                          selectedTileColor: leaf,
-                          selectedColor: sage,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            selected: page == i,
+                            selectedTileColor: leaf,
+                            selectedColor: sage,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            leading: Icon(
+                              [
+                                Icons.space_dashboard_outlined,
+                                Icons.checklist_rounded,
+                                Icons.people_outline,
+                              ][i],
+                            ),
+                            title: Text(['Overview', 'Chores', 'Household'][i]),
+                            onTap: () => setState(() => page = i),
                           ),
-                          leading: Icon(
-                            [
-                              Icons.space_dashboard_outlined,
-                              Icons.checklist_rounded,
-                              Icons.people_outline,
-                            ][i],
-                          ),
-                          title: Text(['Overview', 'Chores', 'Household'][i]),
-                          onTap: () => setState(() => page = i),
                         ),
                       ),
                     const Spacer(),

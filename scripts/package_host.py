@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / 'build' / 'web'
 for required in ('index.html', 'main.dart.js', 'flutter_bootstrap.js'):
     if not (WEB / required).is_file():
-        raise SystemExit('Build the web client first: ./scripts/flutterw build web --release')
+        raise SystemExit('Build the web client first: ./scripts/flutterw build web --release --no-web-resources-cdn')
 
 FILES = {
 'Dockerfile': '''FROM python:3.12-slim
@@ -19,12 +19,13 @@ VOLUME ["/data"]
 EXPOSE 8080
 CMD ["python", "server.py"]
 ''',
-'compose.yaml': '''services:
+'compose.yaml': '''name: dwell
+services:
   dwell:
     build: .
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${DWELL_BIND_ADDRESS:-0.0.0.0}:${DWELL_HOST_PORT:-8081}:8080"
     volumes:
       - dwell-data:/data
     healthcheck:
@@ -52,11 +53,13 @@ The API and browser app are available at http://localhost:8080. Verify http://lo
     docker compose up --build -d
     docker compose ps
 
+Docker publishes `0.0.0.0:8081` on your host and forwards it to port 8080 in the container. Open `http://<host-address>:8081`, using the same host address as Pocket Codex. Verify `http://127.0.0.1:8081/api/health` on the host. Port 8081 avoids the existing Dataset Management service on 8080. Override `DWELL_HOST_PORT` and `DWELL_BIND_ADDRESS` with environment variables or a local `.env` file.
+
 SQLite persists in the named `dwell-data` volume. A Python-based container healthcheck checks the API. The container build configuration is provided; it has not been executed in the development environment because no Dwell Docker target is configured.
 
 ## Connect your phone
 
-Install the Dwell APK. Open “Set up server connection” on the welcome screen and enter your host's LAN URL, for example http://192.168.1.20:8080. Both devices must be able to reach that address. Use HTTPS via a reverse proxy for a public server. The web app needs HTTPS or localhost for secure browser storage. Android supports local HTTP for home networks.
+Install the Dwell APK. Open “Set up server connection” on the welcome screen and enter your host's LAN URL, for example http://192.168.1.20:8081 for Docker (8080 for the direct Python command). Both devices must be able to reach that address. Use HTTPS via a reverse proxy for a public server. The web app needs HTTPS or localhost for secure browser storage. Android supports local HTTP for home networks.
 
 Create an account, create a household, and share the invite code shown on the Household tab. Each housemate creates their own account and joins with that code. Daily and weekly chores create their next occurrence on completion.
 

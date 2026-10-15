@@ -422,7 +422,16 @@ void main() {
 
 Future<void> _loadSdkFonts(WidgetTester tester) async {
   // Load Flutter's shipped fonts instead of relying on the test-only Ahem font.
-  const root = '.tooling/flutter/bin/cache/artifacts/material_fonts';
+  final packages =
+      jsonDecode(
+            File('.dart_tool/package_config.json').readAsStringSync(),
+          )['packages']
+          as List<dynamic>;
+  final flutterPackage = packages.firstWhere((p) => p['name'] == 'flutter');
+  final sdk = Directory.fromUri(
+    Uri.parse(flutterPackage['rootUri'] as String),
+  ).parent.parent.path;
+  final root = '$sdk/bin/cache/artifacts/material_fonts';
   final roboto = FontLoader('Roboto')
     ..addFont(
       Future.value(
