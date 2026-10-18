@@ -48,6 +48,55 @@ void main() {
     );
 
     test(
+      'offline chores persist and reopen without contacting a server',
+      () async {
+        final values = <String, String>{};
+        _installStorageMock(values);
+        addTearDown(
+          () => TestDefaultBinaryMessengerBinding
+              .instance
+              .defaultBinaryMessenger
+              .setMockMethodCallHandler(_secureStorageChannel, null),
+        );
+        final client = MockClient((_) async {
+          throw StateError('Offline mode must not make network requests.');
+        });
+        final store = DwellStore(
+          client: client,
+          storage: const FlutterSecureStorage(),
+        );
+        addTearDown(store.dispose);
+
+        await store.startOffline();
+        expect(store.offline, isTrue);
+        expect(store.household?['name'], 'My home');
+        await store.saveChore({
+          'title': 'Water plants',
+          'room': 'Living room',
+          'due': store.today,
+          'repeat': 'none',
+          'assignee_id': store.userId,
+          'done': false,
+          'completed_at': null,
+        });
+
+        final reopened = DwellStore(
+          client: client,
+          storage: const FlutterSecureStorage(),
+        );
+        addTearDown(reopened.dispose);
+        await reopened.initialize();
+
+        expect(reopened.offline, isTrue);
+        expect(reopened.chores.single.title, 'Water plants');
+        await reopened.complete(reopened.chores.single);
+        expect(reopened.chores.single.done, isTrue);
+        expect(values['offlineMode'], 'true');
+        expect(jsonDecode(values['offlineData']!)['chores'][0]['done'], isTrue);
+      },
+    );
+
+    test(
       'authentication and membership refresh use the configured server',
       () async {
         final values = <String, String>{};
@@ -343,6 +392,31 @@ void main() {
     store.dispose();
   });
 
+  testWidgets('header dark mode toggle updates and saves the preference', (
+    tester,
+  ) async {
+    final values = <String, String>{};
+    _installStorageMock(values);
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(_secureStorageChannel, null),
+    );
+    final store = DwellStore()..startDemo();
+    addTearDown(store.dispose);
+    await tester.pumpWidget(DwellApp(store: store));
+
+    await tester.tap(find.byTooltip('Switch to dark mode'));
+    await tester.pumpAndSettle();
+
+    expect(store.darkMode, isTrue);
+    expect(values['darkMode'], 'true');
+    expect(find.byTooltip('Switch to light mode'), findsOneWidget);
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+      ThemeMode.dark,
+    );
+  });
+
   testWidgets('add and edit chore form persists values in demo home', (
     tester,
   ) async {
@@ -415,6 +489,39 @@ void main() {
         expect(await output.length(), greaterThan(10000));
       });
     }
+    store.darkMode = true;
+    tester.view.physicalSize = const Size(430, 932);
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: repaintKey,
+        child: DwellApp(store: store),
+      ),
+    );
+    await tester.pumpAndSettle();
+    Future<void> captureDark(List<String> paths) async {
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+        find.byKey(repaintKey),
+      );
+      await tester.runAsync(() async {
+        final image = await boundary.toImage(pixelRatio: 1);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        for (final path in paths) {
+          final output = File(path);
+          await output.parent.create(recursive: true);
+          await output.writeAsBytes(bytes!.buffer.asUint8List());
+          expect(await output.length(), greaterThan(10000));
+        }
+        image.dispose();
+      });
+    }
+
+    await captureDark([
+      'artifacts/dwell-dark.png',
+      'screenshots/dwell-overview-dark.png',
+    ]);
+    await tester.tap(find.text('Chores').last);
+    await tester.pumpAndSettle();
+    await captureDark(['screenshots/dwell-chores-dark.png']);
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
   });

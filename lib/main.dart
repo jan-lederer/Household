@@ -2,14 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'store.dart';
 
-const ink = Color(0xFF283F35);
-const sage = Color(0xFF36594B);
-const muted = Color(0xFF7A857D);
-const cream = Color(0xFFF8F7F3);
-const line = Color(0xFFE5E8E0);
-const peach = Color(0xFFFAE9DC);
-const leaf = Color(0xFFE8EEE4);
-const orange = Color(0xFFD48C64);
+bool _darkPalette = false;
+Color get ink =>
+    _darkPalette ? const Color(0xFFE4ECE5) : const Color(0xFF24372A);
+Color get sage =>
+    _darkPalette ? const Color(0xFF79B987) : const Color(0xFF3F8052);
+Color get muted =>
+    _darkPalette ? const Color(0xFFA2B0A5) : const Color(0xFF75847A);
+Color get cream =>
+    _darkPalette ? const Color(0xFF151C17) : const Color(0xFFF6F8F4);
+Color get surface => _darkPalette ? const Color(0xFF202922) : Colors.white;
+Color get line =>
+    _darkPalette ? const Color(0xFF354239) : const Color(0xFFE1E9E1);
+Color get mintSoft =>
+    _darkPalette ? const Color(0xFF26352A) : const Color(0xFFEEF4EE);
+Color get leaf =>
+    _darkPalette ? const Color(0xFF2B3D30) : const Color(0xFFE7F0E8);
+Color get greenAccent =>
+    _darkPalette ? const Color(0xFF82BD8F) : const Color(0xFF69A77A);
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const months = [
   'January',
@@ -26,13 +36,14 @@ const months = [
   'December',
 ];
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final store = DwellStore();
   if (Uri.base.queryParameters['demo'] == '1') {
+    await store.loadDarkMode();
     store.startDemo();
   } else {
-    store.initialize();
+    await store.initialize();
   }
   runApp(DwellApp(store: store));
 }
@@ -41,65 +52,80 @@ class DwellApp extends StatelessWidget {
   const DwellApp({super.key, required this.store});
   final DwellStore store;
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'Dwell · A happier home',
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      useMaterial3: true,
-      scaffoldBackgroundColor: cream,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: sage,
-        primary: sage,
-        surface: cream,
-      ),
-      textTheme: const TextTheme(
-        bodyMedium: TextStyle(color: ink, fontSize: 14),
-        bodyLarge: TextStyle(color: ink, fontSize: 16),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.all(17),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: line),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: line),
-        ),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: sage,
-          foregroundColor: Colors.white,
-          minimumSize: const Size(0, 54),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: store,
+    builder: (context, _) {
+      _darkPalette = store.darkMode;
+      return MaterialApp(
+        title: 'Dwell · A happier home',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          scaffoldBackgroundColor: cream,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: sage,
+            primary: sage,
+            surface: cream,
           ),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          textTheme: TextTheme(
+            bodyMedium: TextStyle(color: ink, fontSize: 14),
+            bodyLarge: TextStyle(color: ink, fontSize: 16),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: surface,
+            contentPadding: const EdgeInsets.all(17),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: line),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: line),
+            ),
+          ),
+          filledButtonTheme: FilledButtonThemeData(
+            style: FilledButton.styleFrom(
+              backgroundColor: sage,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(0, 54),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+          ),
+          outlinedButtonTheme: OutlinedButtonThemeData(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: sage,
+              minimumSize: const Size(0, 50),
+              side: BorderSide(color: line),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          dividerColor: line,
         ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: sage,
-          minimumSize: const Size(0, 50),
-          side: const BorderSide(color: line),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+        themeMode: store.darkMode ? ThemeMode.dark : ThemeMode.light,
+        darkTheme: ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: cream,
+          colorScheme: ColorScheme.fromSeed(
+            brightness: Brightness.dark,
+            seedColor: sage,
+            primary: sage,
+            surface: cream,
           ),
         ),
-      ),
-      dividerColor: line,
-    ),
-    home: AnimatedBuilder(
-      animation: store,
-      builder: (context, _) => !store.ready
-          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : store.user == null
-          ? AuthPage(store: store)
-          : HomePage(store: store),
-    ),
+        home: !store.ready
+            ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+            : store.user == null
+            ? AuthPage(store: store)
+            : HomePage(store: store),
+      );
+    },
   );
 }
 
@@ -118,33 +144,26 @@ class HomeMark extends StatelessWidget {
     child: Stack(
       alignment: Alignment.center,
       children: [
-        Icon(Icons.cottage_rounded, color: cream, size: size * .68),
-        Positioned(
-          right: size * .09,
-          top: size * .09,
-          child: Icon(
-            Icons.auto_awesome,
-            color: const Color(0xFFE9C695),
-            size: size * .23,
-          ),
-        ),
+        Icon(Icons.home_rounded, color: Colors.white, size: size * .66),
       ],
     ),
   );
 }
 
-Text heading(String text, {double size = 28, Color color = ink}) => Text(
+Text heading(String text, {double size = 28, Color? color}) => Text(
   text,
   style: TextStyle(
     fontSize: size,
     fontWeight: FontWeight.w600,
     letterSpacing: -.8,
     height: 1.18,
-    color: color,
+    color: color ?? ink,
   ),
 );
-Text caption(String text, {Color color = muted}) =>
-    Text(text, style: TextStyle(color: color, fontSize: 13, height: 1.5));
+Text caption(String text, {Color? color}) => Text(
+  text,
+  style: TextStyle(color: color ?? muted, fontSize: 13, height: 1.5),
+);
 Widget gap([double height = 16]) => SizedBox(height: height);
 void toast(BuildContext context, String text) =>
     ScaffoldMessenger.of(context).showSnackBar(
@@ -229,7 +248,7 @@ class _ServerSheetState extends State<ServerSheet> {
         ),
         if (error != null) ...[
           gap(),
-          Text(error!, style: const TextStyle(color: Colors.red)),
+          Text(error!, style: TextStyle(color: Colors.red)),
         ],
         gap(22),
         SizedBox(
@@ -303,6 +322,20 @@ class _AuthPageState extends State<AuthPage> {
     }
   }
 
+  Future<void> startOffline() async {
+    setState(() {
+      busy = true;
+      error = null;
+    });
+    try {
+      await widget.store.startOffline();
+    } catch (e) {
+      if (mounted) setState(() => error = '$e');
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     body: SafeArea(
@@ -326,7 +359,7 @@ class _AuthPageState extends State<AuthPage> {
                         IconButton(
                           tooltip: 'Server connection',
                           onPressed: () => serverSheet(context, widget.store),
-                          icon: const Icon(Icons.dns_outlined, color: sage),
+                          icon: Icon(Icons.dns_outlined, color: sage),
                         ),
                       ],
                     ),
@@ -340,7 +373,7 @@ class _AuthPageState extends State<AuthPage> {
                         color: leaf,
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      child: const Text(
+                      child: Text(
                         'A LITTLE TEAMWORK. A HAPPIER HOME.',
                         style: TextStyle(
                           fontSize: 10,
@@ -432,7 +465,7 @@ class _AuthPageState extends State<AuthPage> {
                       gap(12),
                       Text(
                         error ?? widget.store.startupError!,
-                        style: const TextStyle(color: Color(0xFFB45237)),
+                        style: TextStyle(color: Color(0xFFB45237)),
                       ),
                     ],
                     gap(22),
@@ -469,14 +502,21 @@ class _AuthPageState extends State<AuthPage> {
                     Center(
                       child: TextButton.icon(
                         onPressed: busy ? null : widget.store.startDemo,
-                        icon: const Icon(Icons.explore_outlined, size: 18),
+                        icon: Icon(Icons.explore_outlined, size: 18),
                         label: const Text('Explore a demo home'),
+                      ),
+                    ),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: busy ? null : startOffline,
+                        icon: Icon(Icons.offline_bolt_outlined, size: 18),
+                        label: const Text('Use offline mode'),
                       ),
                     ),
                     Center(
                       child: TextButton(
                         onPressed: () => serverSheet(context, widget.store),
-                        child: const Text(
+                        child: Text(
                           'Set up server connection',
                           style: TextStyle(color: muted, fontSize: 12),
                         ),
@@ -529,8 +569,8 @@ class _HomePageState extends State<HomePage> {
             if (wide)
               Container(
                 width: 220,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: surface,
                   border: Border(right: BorderSide(color: line)),
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 36, 20, 24),
@@ -574,7 +614,7 @@ class _HomePageState extends State<HomePage> {
                     gap(20),
                     OutlinedButton.icon(
                       onPressed: settings,
-                      icon: const Icon(Icons.settings_outlined, size: 18),
+                      icon: Icon(Icons.settings_outlined, size: 18),
                       label: const Text('Settings'),
                     ),
                   ],
@@ -588,34 +628,40 @@ class _HomePageState extends State<HomePage> {
                     const LinearProgressIndicator(minHeight: 2)
                   else
                     const SizedBox(height: 2),
-                  if (store.demo)
+                  if (store.demo || store.offline)
                     Container(
                       width: double.infinity,
-                      color: const Color(0xFFEFEADD),
+                      color: mintSoft,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 22,
                         vertical: 8,
                       ),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.science_outlined,
+                          Icon(
+                            store.offline
+                                ? Icons.offline_bolt_outlined
+                                : Icons.science_outlined,
                             size: 15,
                             color: sage,
                           ),
                           const SizedBox(width: 8),
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Demo home · changes reset when you leave',
+                              store.offline
+                                  ? 'Offline mode · chores are saved on this device'
+                                  : 'Demo home · changes reset when you leave',
                               style: TextStyle(fontSize: 11, color: sage),
                             ),
                           ),
                           InkWell(
                             onTap: () => run(store.signOut),
-                            child: const Padding(
+                            child: Padding(
                               padding: EdgeInsets.all(5),
                               child: Text(
-                                'Exit demo',
+                                store.offline
+                                    ? 'Exit offline mode'
+                                    : 'Exit demo',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
@@ -663,7 +709,7 @@ class _HomePageState extends State<HomePage> {
           ? null
           : NavigationBar(
               height: 72,
-              backgroundColor: Colors.white,
+              backgroundColor: surface,
               indicatorColor: leaf,
               selectedIndex: page,
               onDestinationSelected: (i) => setState(() => page = i),
@@ -691,7 +737,7 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: sage,
               foregroundColor: Colors.white,
               elevation: 2,
-              icon: const Icon(Icons.add_rounded),
+              icon: Icon(Icons.add_rounded),
               label: const Text('Add chore'),
             ),
     );
@@ -704,7 +750,9 @@ class _HomePageState extends State<HomePage> {
         if (!wide) ...[const HomeMark(size: 34), const SizedBox(width: 10)],
         Expanded(
           child: InkWell(
-            onTap: store.households.isEmpty ? null : switchHousehold,
+            onTap: store.households.isEmpty || store.offline
+                ? null
+                : switchHousehold,
             borderRadius: BorderRadius.circular(8),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -713,8 +761,10 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'YOUR SHARED SPACE',
+                      Text(
+                        store.offline
+                            ? 'YOUR OFFLINE HOME'
+                            : 'YOUR SHARED SPACE',
                         style: TextStyle(
                           fontSize: 9,
                           color: muted,
@@ -727,7 +777,7 @@ class _HomePageState extends State<HomePage> {
                         store.household?['name'] as String? ??
                             'Welcome to Dwell',
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: ink,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -737,16 +787,27 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                if (store.households.isNotEmpty)
-                  const Icon(Icons.keyboard_arrow_down, color: muted, size: 18),
+                if (store.households.isNotEmpty && !store.offline)
+                  Icon(Icons.keyboard_arrow_down, color: muted, size: 18),
               ],
             ),
           ),
         ),
         IconButton(
+          tooltip: store.darkMode
+              ? 'Switch to light mode'
+              : 'Switch to dark mode',
+          onPressed: () => run(() => store.setDarkMode(!store.darkMode)),
+          icon: Icon(
+            store.darkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+            size: 20,
+            color: muted,
+          ),
+        ),
+        IconButton(
           tooltip: 'Refresh household',
           onPressed: busy ? null : () => run(store.refresh),
-          icon: const Icon(Icons.sync_rounded, size: 20, color: muted),
+          icon: Icon(Icons.sync_rounded, size: 20, color: muted),
         ),
         IconButton(
           tooltip: 'Account and settings',
@@ -754,10 +815,10 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.zero,
           icon: CircleAvatar(
             radius: 20,
-            backgroundColor: peach,
+            backgroundColor: mintSoft,
             child: Text(
               store.firstName.substring(0, 1).toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 color: sage,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -823,9 +884,13 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 30),
-              child: Icon(Icons.wb_sunny_outlined, color: orange, size: 35),
+              child: Icon(
+                Icons.wb_sunny_outlined,
+                color: greenAccent,
+                size: 35,
+              ),
             ),
           ],
         ),
@@ -845,7 +910,7 @@ class _HomePageState extends State<HomePage> {
                     const Text(
                       'A LITTLE BETTER, TOGETHER',
                       style: TextStyle(
-                        color: Color(0xFFCCDACB),
+                        color: Color(0xFFC6DDCA),
                         fontSize: 9,
                         letterSpacing: 1.5,
                         fontWeight: FontWeight.w600,
@@ -866,10 +931,7 @@ class _HomePageState extends State<HomePage> {
                       todayChores.isEmpty
                           ? 'Your home is all caught up today.'
                           : '$done of ${todayChores.length} chores done today',
-                      style: const TextStyle(
-                        color: Color(0xFFDBE5D8),
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Color(0xFFDCEBDD), fontSize: 12),
                     ),
                   ],
                 ),
@@ -886,13 +948,13 @@ class _HomePageState extends State<HomePage> {
                         value: progress,
                         strokeWidth: 6,
                         backgroundColor: Colors.white.withValues(alpha: .16),
-                        color: const Color(0xFFE6C99D),
+                        color: const Color(0xFFB9D9C0),
                         strokeCap: StrokeCap.round,
                       ),
                     ),
                     Text(
                       '${(progress * 100).round()}%',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 22,
                         fontWeight: FontWeight.w600,
@@ -936,7 +998,7 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Text(
                 '${tasks.where((c) => !c.done).length} to do',
-                style: const TextStyle(
+                style: TextStyle(
                   color: sage,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -991,15 +1053,15 @@ class _HomePageState extends State<HomePage> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: peach,
+                  color: mintSoft,
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.favorite_border_rounded,
-                      color: orange,
+                      color: greenAccent,
                       size: 28,
                     ),
                     gap(16),
@@ -1044,7 +1106,7 @@ class _HomePageState extends State<HomePage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 decoration: BoxDecoration(
-                  color: active ? sage : Colors.white,
+                  color: active ? sage : surface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: active ? sage : line),
                 ),
@@ -1074,8 +1136,8 @@ class _HomePageState extends State<HomePage> {
                         shape: BoxShape.circle,
                         color: hasChores
                             ? active
-                                  ? const Color(0xFFE6C99D)
-                                  : orange
+                                  ? const Color(0xFFB9D9C0)
+                                  : greenAccent
                             : Colors.transparent,
                       ),
                     ),
@@ -1114,11 +1176,11 @@ class _HomePageState extends State<HomePage> {
           children: ['All chores', 'Assigned to me', 'Completed']
               .map(
                 (label) => ChoiceChip(
-                  label: Text(label, style: const TextStyle(fontSize: 12)),
+                  label: Text(label, style: TextStyle(fontSize: 12)),
                   selected: filter == label,
                   onSelected: (_) => setState(() => filter = label),
                   selectedColor: leaf,
-                  backgroundColor: Colors.white,
+                  backgroundColor: surface,
                   side: BorderSide(
                     color: filter == label ? sage.withValues(alpha: .3) : line,
                   ),
@@ -1149,12 +1211,12 @@ class _HomePageState extends State<HomePage> {
   Widget choreTile(Chore chore) {
     final overdue = !chore.done && chore.due.compareTo(store.today) < 0;
     final tint = chore.room == 'Kitchen' || chore.room == 'Bathroom'
-        ? peach
+        ? mintSoft
         : leaf;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: chore.done ? const Color(0xFFF0F2EC) : Colors.white,
+        color: chore.done ? mintSoft : surface,
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           onTap: busy ? null : () => editChore(chore: chore),
@@ -1174,13 +1236,7 @@ class _HomePageState extends State<HomePage> {
                     color: tint,
                     borderRadius: BorderRadius.circular(13),
                   ),
-                  child: Icon(
-                    roomIcon(chore.room),
-                    size: 23,
-                    color: chore.room == 'Kitchen' || chore.room == 'Bathroom'
-                        ? const Color(0xFFAF7656)
-                        : sage,
-                  ),
+                  child: Icon(roomIcon(chore.room), size: 23, color: sage),
                 ),
                 const SizedBox(width: 13),
                 Expanded(
@@ -1207,9 +1263,9 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Text(
                             chore.room,
-                            style: const TextStyle(fontSize: 10, color: muted),
+                            style: TextStyle(fontSize: 10, color: muted),
                           ),
-                          const Text('·', style: TextStyle(color: muted)),
+                          Text('·', style: TextStyle(color: muted)),
                           Text(
                             chore.done
                                 ? 'Done'
@@ -1222,11 +1278,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           if (chore.repeat != 'none')
-                            const Icon(
-                              Icons.repeat_rounded,
-                              size: 12,
-                              color: muted,
-                            ),
+                            Icon(Icons.repeat_rounded, size: 12, color: muted),
                         ],
                       ),
                       gap(7),
@@ -1236,14 +1288,14 @@ class _HomePageState extends State<HomePage> {
                             radius: 8,
                             backgroundColor: chore.assigneeId == store.userId
                                 ? leaf
-                                : peach,
+                                : mintSoft,
                             child: Text(
                               chore.assigneeId == null
                                   ? '?'
                                   : store
                                         .memberName(chore.assigneeId)
                                         .substring(0, 1),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 8,
                                 color: sage,
                                 fontWeight: FontWeight.w600,
@@ -1253,7 +1305,7 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(width: 5),
                           Text(
                             store.memberName(chore.assigneeId),
-                            style: const TextStyle(fontSize: 10, color: muted),
+                            style: TextStyle(fontSize: 10, color: muted),
                           ),
                         ],
                       ),
@@ -1297,7 +1349,7 @@ class _HomePageState extends State<HomePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: line),
       ),
@@ -1308,11 +1360,13 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(child: heading('The home team', size: 20)),
               const SizedBox(width: 8),
-              const Icon(Icons.people_outline, color: sage),
+              Icon(Icons.people_outline, color: sage),
             ],
           ),
           gap(7),
-          caption('${store.members.length} people, one happy home.'),
+          caption(
+            '${store.members.length} ${store.members.length == 1 ? 'person' : 'people'}, one happy home.',
+          ),
           gap(22),
           ...store.members.map((member) {
             final count = open
@@ -1325,18 +1379,18 @@ class _HomePageState extends State<HomePage> {
                   CircleAvatar(
                     backgroundColor: member['id'] == store.userId
                         ? leaf
-                        : peach,
+                        : mintSoft,
                     radius: 19,
                     child: Text(
                       (member['name'] as String).substring(0, 1).toUpperCase(),
-                      style: const TextStyle(fontSize: 14, color: sage),
+                      style: TextStyle(fontSize: 14, color: sage),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       store.memberName(member['id'] as String),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1344,7 +1398,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Text(
                     '$count to do',
-                    style: const TextStyle(fontSize: 11, color: muted),
+                    style: TextStyle(fontSize: 11, color: muted),
                   ),
                 ],
               ),
@@ -1359,94 +1413,129 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget householdPage() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      heading('Better under one roof.'),
-      gap(10),
-      caption('Your people. Your space. Your shared rhythm.'),
-      gap(26),
-      householdSummary(),
-      gap(20),
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: leaf,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.mail_outline_rounded, color: sage),
-            gap(16),
-            heading('Make yourself at home.', size: 23),
-            gap(10),
-            caption(
-              'Share this invite code with your housemates. They can create an account and join your household.',
+  Widget householdPage() {
+    if (store.offline) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          heading('Your offline home.'),
+          gap(10),
+          caption('Your chores stay saved on this device.'),
+          gap(26),
+          householdSummary(),
+          gap(20),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: leaf,
+              borderRadius: BorderRadius.circular(22),
             ),
-            gap(18),
-            Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: SelectableText(
-                    store.household!['code'] as String,
-                    style: const TextStyle(
-                      fontSize: 27,
-                      letterSpacing: 3,
-                      fontWeight: FontWeight.w600,
-                      color: sage,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Copy invite code',
-                  onPressed: () async {
-                    await Clipboard.setData(
-                      ClipboardData(text: store.household!['code'] as String),
-                    );
-                    if (mounted) {
-                      toast(
-                        context,
-                        store.demo
-                            ? 'Demo code copied · use a real household to invite'
-                            : 'Invite code copied',
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.copy_outlined, color: sage),
+                Icon(Icons.offline_bolt_outlined, color: sage),
+                gap(16),
+                heading('Just for this device.', size: 23),
+                gap(10),
+                caption(
+                  'Your chores are stored locally. Connect to a Dwell server to share a home with other people.',
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-      gap(24),
-      Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => groupDialog(false),
-              icon: const Icon(Icons.add_home_outlined, size: 18),
-              label: const Text('Create home'),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => groupDialog(true),
-              icon: const Icon(Icons.login_rounded, size: 18),
-              label: const Text('Join home'),
-            ),
           ),
         ],
-      ),
-      gap(18),
-      caption(
-        'Every household has its own chores and invite code. Switch homes from the name at the top.',
-      ),
-    ],
-  );
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        heading('Better under one roof.'),
+        gap(10),
+        caption('Your people. Your space. Your shared rhythm.'),
+        gap(26),
+        householdSummary(),
+        gap(20),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: leaf,
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.mail_outline_rounded, color: sage),
+              gap(16),
+              heading('Make yourself at home.', size: 23),
+              gap(10),
+              caption(
+                'Share this invite code with your housemates. They can create an account and join your household.',
+              ),
+              gap(18),
+              Row(
+                children: [
+                  Expanded(
+                    child: SelectableText(
+                      store.household!['code'] as String,
+                      style: TextStyle(
+                        fontSize: 27,
+                        letterSpacing: 3,
+                        fontWeight: FontWeight.w600,
+                        color: sage,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Copy invite code',
+                    onPressed: () async {
+                      await Clipboard.setData(
+                        ClipboardData(text: store.household!['code'] as String),
+                      );
+                      if (mounted) {
+                        toast(
+                          context,
+                          store.demo
+                              ? 'Demo code copied · use a real household to invite'
+                              : 'Invite code copied',
+                        );
+                      }
+                    },
+                    icon: Icon(Icons.copy_outlined, color: sage),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        gap(24),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => groupDialog(false),
+                icon: Icon(Icons.add_home_outlined, size: 18),
+                label: const Text('Create home'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => groupDialog(true),
+                icon: Icon(Icons.login_rounded, size: 18),
+                label: const Text('Join home'),
+              ),
+            ),
+          ],
+        ),
+        gap(18),
+        caption(
+          'Every household has its own chores and invite code. Switch homes from the name at the top.',
+        ),
+      ],
+    );
+  }
 
   Widget onboarding() => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1464,7 +1553,7 @@ class _HomePageState extends State<HomePage> {
         width: double.infinity,
         child: FilledButton.icon(
           onPressed: () => groupDialog(false),
-          icon: const Icon(Icons.add_home_outlined),
+          icon: Icon(Icons.add_home_outlined),
           label: const Text('Create a household'),
         ),
       ),
@@ -1473,7 +1562,7 @@ class _HomePageState extends State<HomePage> {
         width: double.infinity,
         child: OutlinedButton.icon(
           onPressed: () => groupDialog(true),
-          icon: const Icon(Icons.key_outlined),
+          icon: Icon(Icons.key_outlined),
           label: const Text('Join with an invite code'),
         ),
       ),
@@ -1484,7 +1573,7 @@ class _HomePageState extends State<HomePage> {
     width: double.infinity,
     padding: const EdgeInsets.symmetric(vertical: 34, horizontal: 20),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: surface,
       borderRadius: BorderRadius.circular(20),
       border: Border.all(color: line),
     ),
@@ -1495,13 +1584,13 @@ class _HomePageState extends State<HomePage> {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
         ),
         gap(7),
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: muted, fontSize: 12, height: 1.6),
+          style: TextStyle(color: muted, fontSize: 12, height: 1.6),
         ),
       ],
     ),
@@ -1542,10 +1631,10 @@ class _HomePageState extends State<HomePage> {
               ...store.households.map(
                 (g) => ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.home_outlined, color: sage),
+                  leading: Icon(Icons.home_outlined, color: sage),
                   title: Text(g['name'] as String),
                   trailing: g['id'] == store.household?['id']
-                      ? const Icon(Icons.check_rounded, color: sage)
+                      ? Icon(Icons.check_rounded, color: sage)
                       : null,
                   onTap: () {
                     Navigator.pop(ctx);
@@ -1553,16 +1642,18 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ),
-              const Divider(),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.add_rounded),
-                title: const Text('Create or join another home'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  setState(() => page = 2);
-                },
-              ),
+              if (!store.offline) ...[
+                const Divider(),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.add_rounded),
+                  title: const Text('Create or join another home'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() => page = 2);
+                  },
+                ),
+              ],
             ],
           ),
         ),
@@ -1585,19 +1676,23 @@ class _HomePageState extends State<HomePage> {
               gap(10),
               Text(
                 store.user!['name'] as String,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
               caption(store.user!['email'] as String),
               gap(20),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.dns_outlined, color: sage),
+                leading: Icon(Icons.dns_outlined, color: sage),
                 title: const Text('Server connection'),
                 subtitle: Text(
-                  store.demo ? 'Demo preview' : store.server,
-                  style: const TextStyle(fontSize: 12),
+                  store.offline
+                      ? 'Offline · saved on this device'
+                      : store.demo
+                      ? 'Demo preview'
+                      : store.server,
+                  style: TextStyle(fontSize: 12),
                 ),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pop(ctx);
                   serverSheet(context, store);
@@ -1606,15 +1701,21 @@ class _HomePageState extends State<HomePage> {
               const Divider(),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.logout_rounded, color: sage),
-                title: Text(store.demo ? 'Leave demo home' : 'Sign out'),
+                leading: Icon(Icons.logout_rounded, color: sage),
+                title: Text(
+                  store.offline
+                      ? 'Exit offline mode'
+                      : store.demo
+                      ? 'Leave demo home'
+                      : 'Sign out',
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   run(store.signOut);
                 },
               ),
               gap(10),
-              caption('Dwell 1.0 · A little teamwork. A happier home.'),
+              caption('Dwell 1.1 · A little teamwork. A happier home.'),
             ],
           ),
         ),
@@ -1677,8 +1778,7 @@ class _GroupSheetState extends State<GroupSheet> {
                 : 'e.g. The Willow apartment',
           ),
         ),
-        if (error != null)
-          Text(error!, style: const TextStyle(color: Colors.red)),
+        if (error != null) Text(error!, style: TextStyle(color: Colors.red)),
         gap(18),
         SizedBox(
           width: double.infinity,
@@ -1847,7 +1947,7 @@ class _ChoreSheetState extends State<ChoreSheet> {
                   IconButton(
                     tooltip: 'Close editor',
                     onPressed: busy ? null : () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: Icon(Icons.close_rounded),
                   ),
                 ],
               ),
@@ -1927,16 +2027,16 @@ class _ChoreSheetState extends State<ChoreSheet> {
                         if (chosen != null) setState(() => due = chosen);
                       },
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: surface,
                   padding: const EdgeInsets.all(17),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined, size: 19),
+                    Icon(Icons.calendar_today_outlined, size: 19),
                     const SizedBox(width: 12),
                     Text('Due ${dateLabel(dayKey(due))}'),
                     const Spacer(),
-                    const Icon(Icons.expand_more_rounded, size: 19),
+                    Icon(Icons.expand_more_rounded, size: 19),
                   ],
                 ),
               ),
@@ -1964,7 +2064,7 @@ class _ChoreSheetState extends State<ChoreSheet> {
               ],
               if (error != null) ...[
                 gap(14),
-                Text(error!, style: const TextStyle(color: Colors.red)),
+                Text(error!, style: TextStyle(color: Colors.red)),
               ],
               gap(24),
               if (!completed)
@@ -1985,7 +2085,7 @@ class _ChoreSheetState extends State<ChoreSheet> {
                 Center(
                   child: TextButton.icon(
                     onPressed: busy ? null : delete,
-                    icon: const Icon(Icons.delete_outline, size: 18),
+                    icon: Icon(Icons.delete_outline, size: 18),
                     label: const Text('Delete chore'),
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFFA7634A),

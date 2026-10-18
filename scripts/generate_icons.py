@@ -5,7 +5,7 @@ import struct
 import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
-CREAM, SAGE, ORANGE = (248, 247, 243), (54, 89, 75), (212, 140, 100)
+GREEN, WHITE = (63, 128, 82), (255, 255, 255)
 
 
 def inside_polygon(x, y, points):
@@ -19,47 +19,48 @@ def inside_polygon(x, y, points):
     return hit
 
 
-def color(x, y):
+def color(x, y, maskable=False):
     # All geometry uses the same 512-unit viewBox as assets/dwell-mark.svg.
     rounded = 112
-    if not (x < rounded and y < rounded or x > 512-rounded and y < rounded or
-            x < rounded and y > 512-rounded or x > 512-rounded and y > 512-rounded):
-        base = CREAM
-    else:
+    corner = (x < rounded or x > 512-rounded) and (y < rounded or y > 512-rounded)
+    inside = True
+    if corner:
         cx = rounded if x < 256 else 512-rounded
         cy = rounded if y < 256 else 512-rounded
-        base = CREAM if (x-cx)**2 + (y-cy)**2 <= rounded**2 else (255,255,255)
+        inside = (x-cx)**2 + (y-cy)**2 <= rounded**2
+    base = GREEN
     roof = inside_polygon(x, y, [(88,244),(256,94),(424,244)])
     wall = 132 <= x <= 380 and 224 <= y <= 424
     if roof or wall:
-        base = SAGE
+        base = WHITE
     if 218 <= x <= 294 and 310 <= y <= 424:
-        base = CREAM
+        base = GREEN
     if 156 <= x <= 199 and 272 <= y <= 315:
-        base = CREAM
-    # Four-point sparkle, matching the vector mark.
-    if inside_polygon(x, y, [(389,90),(397,115),(422,123),(397,131),
-                             (389,156),(381,131),(356,123),(381,115)]):
-        base = ORANGE
-    return base
+        base = GREEN
+    return (*base, 255 if maskable or inside else 0)
 
 
 def chunk(kind, data):
     return struct.pack('!I', len(data)) + kind + data + struct.pack('!I', zlib.crc32(kind + data) & 0xffffffff)
 
 
-def png(size, path):
+def png(size, path, maskable=False):
     scale = 2
     rows = bytearray()
     for py in range(size):
         rows.append(0)
         for px in range(size):
             samples = [color((px+(sx+.5)/scale)*512/size,
-                             (py+(sy+.5)/scale)*512/size)
+                             (py+(sy+.5)/scale)*512/size, maskable)
                        for sy in range(scale) for sx in range(scale)]
-            rows.extend(tuple(sum(c[i] for c in samples)//len(samples) for i in range(3)))
+            alpha = sum(c[3] for c in samples)
+            if alpha:
+                rgb = tuple(sum(c[i] * c[3] for c in samples) // alpha for i in range(3))
+            else:
+                rgb = (0, 0, 0)
+            rows.extend((*rgb, alpha // len(samples)))
     data = b'\x89PNG\r\n\x1a\n'
-    data += chunk(b'IHDR', struct.pack('!2I5B', size, size, 8, 2, 0, 0, 0))
+    data += chunk(b'IHDR', struct.pack('!2I5B', size, size, 8, 6, 0, 0, 0))
     data += chunk(b'IDAT', zlib.compress(bytes(rows), 9))
     data += chunk(b'IEND', b'')
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -69,11 +70,11 @@ def png(size, path):
 def main():
     for density, size in [('mdpi',48),('hdpi',72),('xhdpi',96),('xxhdpi',144),('xxxhdpi',192)]:
         png(size, ROOT / 'android/app/src/main/res' / f'mipmap-{density}' / 'ic_launcher.png')
-    for filename, size in [('Icon-192.png',192),('Icon-512.png',512),
-                           ('Icon-maskable-192.png',192),('Icon-maskable-512.png',512),
-                           ('favicon.png',48)]:
+    for filename, size, maskable in [('Icon-192.png',192,False),('Icon-512.png',512,False),
+                                     ('Icon-maskable-192.png',192,True),('Icon-maskable-512.png',512,True),
+                                     ('favicon.png',48,False)]:
         target = ROOT / 'web' / ('icons' if filename.startswith('Icon') else '') / filename
-        png(size, target)
+        png(size, target, maskable)
 
 
 if __name__ == '__main__':

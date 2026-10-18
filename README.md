@@ -1,6 +1,18 @@
 # Dwell
 
-Dwell helps people in an apartment share chores, assign work to housemates, and keep recurring tasks moving. The Flutter app pairs with a small SQLite-backed API and uses a home-and-sparkle mark in warm cream, deep sage, and muted orange.
+Dwell helps people in an apartment share chores, assign work to housemates, and keep recurring tasks moving. The Flutter app pairs with a small SQLite-backed API and uses a simple white home mark on a green tile, with a calm green interface.
+
+Use the sun/moon button in the home header to switch between light and dark themes. Your choice is saved on the device.
+
+The green home launcher icon has transparent rounded corners; maskable web icons use a full-bleed green background for clean install previews.
+
+## Dark mode screenshots
+
+Captured at 430 × 932 in the demo home.
+
+| Overview · dark | Chores · dark |
+| --- | --- |
+| ![Dwell overview in dark mode](screenshots/dwell-overview-dark.png) | ![Dwell chores list in dark mode](screenshots/dwell-chores-dark.png) |
 
 ## Local setup
 
@@ -17,6 +29,8 @@ DWELL_PORT=8080 DWELL_DB=./data/dwell.sqlite DWELL_WEB=./build/web python3 backe
 Open `http://localhost:8080`. The browser app uses the same-origin API automatically. Check the service at `http://localhost:8080/api/health`. Secure browser storage requires HTTPS or localhost; use the Android app for plain HTTP access on your home network.
 
 To try the interface without creating an account or starting a server, select **Explore a demo home** on the sign-in screen. Demo changes are temporary, reset when you leave, and are not shared with other users. To use real data, create an account, create a home, then share its invite code from the Household tab so housemates can join with their own accounts.
+
+Choose **Use offline mode** to manage a personal home without connecting to a server. Chores are saved on this device and remain available after reopening the app. Offline homes are not shared or synced; connect to a Dwell server and sign in to use household features.
 
 ## Android
 

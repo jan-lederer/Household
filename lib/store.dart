@@ -46,11 +46,14 @@ class DwellStore extends ChangeNotifier {
   final http.Client _client;
   final FlutterSecureStorage _storage;
   String server = const String.fromEnvironment('API_URL');
+  static const _offlineDataKey = 'offlineData';
+  static const _offlineModeKey = 'offlineMode';
+  static const _darkModeKey = 'darkMode';
   String? _token;
   Map<String, dynamic>? user, household;
   List<Map<String, dynamic>> households = [], members = [];
   List<Chore> chores = [];
-  bool ready = false, demo = false;
+  bool ready = false, demo = false, offline = false, darkMode = false;
   String? startupError;
   String get userId => user?['id'] as String? ?? '';
   String get firstName =>
@@ -72,12 +75,28 @@ class DwellStore extends ChangeNotifier {
     }
     try {
       server = await _storage.read(key: 'server') ?? server;
-      _token = await _storage.read(key: 'token');
-      if (_token != null) await refresh();
+      offline = await _storage.read(key: _offlineModeKey) == 'true';
+      darkMode = await _storage.read(key: _darkModeKey) == 'true';
+      if (offline) {
+        await _loadOfflineHome();
+      } else {
+        _token = await _storage.read(key: 'token');
+        if (_token != null) await refresh();
+      }
     } catch (e) {
       startupError = e.toString();
     }
     ready = true;
+    notifyListeners();
+  }
+
+  Future<void> loadDarkMode() async {
+    darkMode = await _storage.read(key: _darkModeKey) == 'true';
+  }
+
+  Future<void> setDarkMode(bool enabled) async {
+    await _storage.write(key: _darkModeKey, value: enabled ? 'true' : 'false');
+    darkMode = enabled;
     notifyListeners();
   }
 
@@ -190,12 +209,14 @@ class DwellStore extends ChangeNotifier {
     _token = data['token'] as String;
     await _storage.write(key: 'token', value: _token);
     await _storage.write(key: 'server', value: server);
+    await _storage.write(key: _offlineModeKey, value: 'false');
     demo = false;
+    offline = false;
     await refresh();
   }
 
   Future<void> refresh() async {
-    if (demo) {
+    if (demo || offline) {
       notifyListeners();
       return;
     }
@@ -219,7 +240,7 @@ class DwellStore extends ChangeNotifier {
   }
 
   Future<void> selectHousehold(Map<String, dynamic> group) async {
-    if (demo) return;
+    if (demo || offline) return;
     final data = await request('GET', '/households/${group['id']}');
     household = Map<String, dynamic>.from(data['household'] as Map);
     members = (data['members'] as List)
@@ -233,7 +254,7 @@ class DwellStore extends ChangeNotifier {
   }
 
   Future<void> createHousehold(String name) async {
-    if (demo) {
+    if (demo || offline) {
       throw const ApiException('Create an account to add your own household.');
     }
     final group = await request('POST', '/households', {'name': name});
@@ -242,7 +263,7 @@ class DwellStore extends ChangeNotifier {
   }
 
   Future<void> joinHousehold(String code) async {
-    if (demo) {
+    if (demo || offline) {
       throw const ApiException('Create an account to join your household.');
     }
     final group = await request('POST', '/join', {'code': code});
@@ -251,7 +272,7 @@ class DwellStore extends ChangeNotifier {
   }
 
   Future<void> saveChore(Map<String, dynamic> values, {String? id}) async {
-    if (demo) {
+    if (demo || offline) {
       final index = chores.indexWhere((c) => c.id == id);
       final chore = Chore({
         ...values,
@@ -262,6 +283,7 @@ class DwellStore extends ChangeNotifier {
       } else {
         chores[index] = chore;
       }
+      if (offline) await _saveOfflineHome();
       notifyListeners();
       return;
     }
@@ -274,7 +296,7 @@ class DwellStore extends ChangeNotifier {
   }
 
   Future<void> complete(Chore chore) async {
-    if (demo) {
+    if (demo || offline) {
       if (chore.done && chore.repeat != 'none') {
         throw const ApiException(
           'Edit the next occurrence of this repeating chore.',
@@ -303,6 +325,7 @@ class DwellStore extends ChangeNotifier {
           }),
         );
       }
+      if (offline) await _saveOfflineHome();
       notifyListeners();
       return;
     }
@@ -311,8 +334,9 @@ class DwellStore extends ChangeNotifier {
   }
 
   Future<void> deleteChore(Chore chore) async {
-    if (demo) {
+    if (demo || offline) {
       chores.removeWhere((c) => c.id == chore.id);
+      if (offline) await _saveOfflineHome();
       notifyListeners();
       return;
     }
@@ -330,6 +354,7 @@ class DwellStore extends ChangeNotifier {
     }
     await _storage.delete(key: 'token');
     await _storage.delete(key: 'household');
+    await _storage.write(key: _offlineModeKey, value: 'false');
     _token = null;
     user = null;
     household = null;
@@ -337,12 +362,75 @@ class DwellStore extends ChangeNotifier {
     members = [];
     chores = [];
     demo = false;
+    offline = false;
     startupError = null;
     notifyListeners();
   }
 
+  Future<void> startOffline() async {
+    demo = false;
+    offline = true;
+    _token = null;
+    await _loadOfflineHome();
+    await _storage.write(key: _offlineModeKey, value: 'true');
+    ready = true;
+    notifyListeners();
+  }
+
+  Future<void> _loadOfflineHome() async {
+    final raw = await _storage.read(key: _offlineDataKey);
+    if (raw != null) {
+      try {
+        final data = jsonDecode(raw) as Map<String, dynamic>;
+        user = Map<String, dynamic>.from(data['user'] as Map);
+        household = Map<String, dynamic>.from(data['household'] as Map);
+        members = (data['members'] as List)
+            .map((m) => Map<String, dynamic>.from(m as Map))
+            .toList();
+        chores = (data['chores'] as List)
+            .map((c) => Chore(Map<String, dynamic>.from(c as Map)))
+            .toList();
+        households = [household!];
+        return;
+      } catch (_) {
+        throw const ApiException(
+          'Your saved offline home could not be read. Its data is still stored on this device.',
+        );
+      }
+    }
+    user = {
+      'id': 'offline-user',
+      'name': 'You',
+      'email': 'Saved on this device',
+    };
+    household = {
+      'id': 'offline-home',
+      'name': 'My home',
+      'owner_id': 'offline-user',
+    };
+    households = [household!];
+    members = [
+      {'id': 'offline-user', 'name': 'You'},
+    ];
+    chores = [];
+    await _saveOfflineHome();
+  }
+
+  Future<void> _saveOfflineHome() async {
+    await _storage.write(
+      key: _offlineDataKey,
+      value: jsonEncode({
+        'user': user,
+        'household': household,
+        'members': members,
+        'chores': chores.map((chore) => chore.toJson()).toList(),
+      }),
+    );
+  }
+
   void startDemo() {
     demo = true;
+    offline = false;
     user = {'id': 'alex', 'name': 'Alex Morgan', 'email': 'alex@example.com'};
     household = {
       'id': 'demo',
