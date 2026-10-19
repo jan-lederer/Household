@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Generate Dwell's Android and web launcher PNGs from a tiny stdlib rasterizer."""
 from pathlib import Path
+import json
 import struct
 import zlib
 
@@ -75,6 +76,12 @@ def main():
                                      ('favicon.png',48,False)]:
         target = ROOT / 'web' / ('icons' if filename.startswith('Icon') else '') / filename
         png(size, target, maskable)
+    ios_icons = ROOT / 'ios/Runner/Assets.xcassets/AppIcon.appiconset'
+    images = json.loads((ios_icons / 'Contents.json').read_text())['images']
+    for image in images:
+        width = float(image['size'].split('x')[0])
+        scale = int(image['scale'].removesuffix('x'))
+        png(round(width * scale), ios_icons / image['filename'], maskable=True)
 
 
 if __name__ == '__main__':

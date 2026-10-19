@@ -1,3 +1,12 @@
+import java.util.Properties
+
+val signingProperties = Properties()
+val signingPropertiesFile = rootProject.file("key.properties")
+if (signingPropertiesFile.exists()) {
+    signingPropertiesFile.inputStream().use(signingProperties::load)
+}
+val playBundleBuild = gradle.startParameter.taskNames.any { it.contains("bundle", ignoreCase = true) }
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -31,9 +40,20 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            if (playBundleBuild) {
+                require(signingPropertiesFile.exists()) {
+                    "android/key.properties is required to sign a Play Store app bundle."
+                }
+                signingConfig = signingConfigs.create("release") {
+                    keyAlias = signingProperties["keyAlias"] as String
+                    keyPassword = signingProperties["keyPassword"] as String
+                    storeFile = file(signingProperties["storeFile"] as String)
+                    storePassword = signingProperties["storePassword"] as String
+                }
+            } else {
+                // Keep APK builds signed with the development key for local installs.
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 }

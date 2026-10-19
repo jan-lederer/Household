@@ -71,7 +71,11 @@ class DwellStore extends ChangeNotifier {
 
   Future<void> initialize() async {
     if (server.isEmpty) {
-      server = kIsWeb ? Uri.base.origin : 'http://10.0.2.2:8080';
+      server = kIsWeb
+          ? Uri.base.origin
+          : defaultTargetPlatform == TargetPlatform.android
+          ? 'http://10.0.2.2:8080'
+          : '';
     }
     try {
       server = await _storage.read(key: 'server') ?? server;

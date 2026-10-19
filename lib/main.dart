@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'store.dart';
 
 bool _darkPalette = false;
@@ -1701,6 +1702,19 @@ class _HomePageState extends State<HomePage> {
               const Divider(),
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.privacy_tip_outlined, color: sage),
+                title: const Text('Privacy policy'),
+                trailing: const Icon(Icons.open_in_new, size: 18),
+                onTap: () async {
+                  final uri = Uri.parse(
+                    'https://jan-lederer.github.io/Household/',
+                  );
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                },
+              ),
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
                 leading: Icon(Icons.logout_rounded, color: sage),
                 title: Text(
                   store.offline
@@ -1715,7 +1729,7 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               gap(10),
-              caption('Dwell 1.1 · A little teamwork. A happier home.'),
+              caption('Dwell 1.2 · A little teamwork. A happier home.'),
             ],
           ),
         ),

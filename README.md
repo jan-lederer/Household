@@ -34,9 +34,15 @@ Choose **Use offline mode** to manage a personal home without connecting to a se
 
 ## Android
 
-Build an installable debug APK with `./scripts/flutterw build apk --debug`, or a release APK with `./scripts/flutterw build apk --release`. The release build currently uses Flutter's development debug signing configuration; sign it with your own release key before distributing it. The APK is written to `build/app/outputs/flutter-apk/app-release.apk` for release builds.
+Build APKs with `./scripts/flutterw build apk --debug` or `./scripts/flutterw build apk --release`; APK builds remain signed with Flutter's development debug key for local installation. For Google Play, build a release app bundle with `./scripts/flutterw build appbundle --release`. The bundle is signed with the upload key configured in `android/key.properties` and written to `build/app/outputs/bundle/release/app-release.aab`.
+
+The upload keystore (`android/app/dwell-upload-key.jks`) and `android/key.properties` are ignored by Git. Back up both securely; losing the upload key can prevent future updates if Play App Signing is not enabled. Do not commit or share the key publicly. The privacy policy source is the repository-root `index.html`; enable GitHub Pages for the `main` branch and root folder so it is available at [jan-lederer.github.io/Household](https://jan-lederer.github.io/Household/).
 
 Android emulators default to `http://10.0.2.2:8080`. To connect a phone to a home server, set Dwell's server address to the computer's LAN address, such as `http://192.168.1.20:8081` for Docker (`:8080` for direct Python); both devices need to be on the same network and the host firewall must allow the selected host port (8081 for Docker). You can also set the default at build time with `--dart-define=API_URL=http://192.168.1.20:8080`. Local HTTP is enabled for home-network use. Use HTTPS before exposing the service to the public internet; do not send passwords over public plain HTTP.
+
+## iPhone
+
+The `ios/Runner.xcworkspace` project is the native Flutter iOS app, with bundle ID `com.dwell.dwell` and the matching green app icon. Build and sign it on a Mac with Xcode. The source handoff is `artifacts/dwell-ios-project.zip`. On the Mac, unzip it, run `flutter pub get`, open `ios/Runner.xcworkspace` in Xcode, select your development team under **Signing & Capabilities**, then run on a connected iPhone or use **Product → Archive** to prepare a TestFlight/App Store upload. Set Dwell's server address to an HTTPS URL; iOS does not use the Android emulator address. The iOS target can be tested on a personal device with Xcode; TestFlight and App Store distribution require Apple Developer Program membership. This Linux workspace can generate and check the iOS project, but cannot compile or sign it.
 
 ## Docker
 

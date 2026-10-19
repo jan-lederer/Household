@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,6 +22,24 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('DwellStore', () {
+    test('iOS starts without the Android emulator server address', () async {
+      final values = <String, String>{};
+      _installStorageMock(values);
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() {
+        debugDefaultTargetPlatformOverride = null;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(_secureStorageChannel, null);
+      });
+      final store = DwellStore(storage: const FlutterSecureStorage());
+      addTearDown(store.dispose);
+
+      await store.initialize();
+
+      expect(store.server, isEmpty);
+      expect(store.ready, isTrue);
+    });
+
     test(
       'demo completion marks the chore and schedules the next occurrence',
       () async {
