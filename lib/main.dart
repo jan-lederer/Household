@@ -2,25 +2,116 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'store.dart';
+import 'template_icons.dart';
 
 bool _darkPalette = false;
 Color get ink =>
-    _darkPalette ? const Color(0xFFE4ECE5) : const Color(0xFF24372A);
+    _darkPalette ? const Color(0xFFF1F5FA) : const Color(0xFF172235);
 Color get sage =>
-    _darkPalette ? const Color(0xFF79B987) : const Color(0xFF3F8052);
+    _darkPalette ? const Color(0xFF86D7B5) : const Color(0xFF2C9B76);
 Color get muted =>
-    _darkPalette ? const Color(0xFFA2B0A5) : const Color(0xFF75847A);
+    _darkPalette ? const Color(0xFFB6C3D4) : const Color(0xFF56657B);
 Color get cream =>
-    _darkPalette ? const Color(0xFF151C17) : const Color(0xFFF6F8F4);
-Color get surface => _darkPalette ? const Color(0xFF202922) : Colors.white;
+    _darkPalette ? const Color(0xFF090E19) : const Color(0xFFF3F6FA);
+Color get surface => _darkPalette ? const Color(0xFF131D2D) : Colors.white;
 Color get line =>
-    _darkPalette ? const Color(0xFF354239) : const Color(0xFFE1E9E1);
+    _darkPalette ? const Color(0xFF35465C) : const Color(0xFFDDE5EF);
 Color get mintSoft =>
-    _darkPalette ? const Color(0xFF26352A) : const Color(0xFFEEF4EE);
+    _darkPalette ? const Color(0xFF1D342E) : const Color(0xFFE8F4EE);
 Color get leaf =>
-    _darkPalette ? const Color(0xFF2B3D30) : const Color(0xFFE7F0E8);
-Color get greenAccent =>
-    _darkPalette ? const Color(0xFF82BD8F) : const Color(0xFF69A77A);
+    _darkPalette ? const Color(0xFF182923) : const Color(0xFFEAF4EF);
+Color get greenAccent => sage;
+
+ThemeData _dwellTheme(Brightness brightness) {
+  final isDark = brightness == Brightness.dark;
+  final accent = isDark ? const Color(0xFF86D7B5) : const Color(0xFF2C9B76);
+  final page = isDark ? const Color(0xFF090E19) : const Color(0xFFF3F6FA);
+  final card = isDark ? const Color(0xFF131D2D) : Colors.white;
+  final foreground = isDark ? const Color(0xFFF1F5FA) : const Color(0xFF172235);
+  final secondary = isDark ? const Color(0xFFB6C3D4) : const Color(0xFF56657B);
+  final outline = isDark ? const Color(0xFF35465C) : const Color(0xFFDDE5EF);
+  final scheme =
+      ColorScheme.fromSeed(
+        seedColor: const Color(0xFF2C9B76),
+        brightness: brightness,
+      ).copyWith(
+        primary: accent,
+        onPrimary: isDark ? const Color(0xFF092117) : Colors.white,
+        surface: card,
+        onSurface: foreground,
+        onSurfaceVariant: secondary,
+        outline: outline,
+        outlineVariant: outline,
+      );
+  return ThemeData(
+    useMaterial3: true,
+    brightness: brightness,
+    fontFamily: 'Roboto',
+    colorScheme: scheme,
+    scaffoldBackgroundColor: page,
+    dividerTheme: DividerThemeData(color: outline),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: card,
+      indicatorColor: accent.withValues(alpha: isDark ? .22 : .14),
+      height: 72,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+    ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      showDragHandle: false,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: card,
+      contentPadding: const EdgeInsets.all(16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: outline),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: outline),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: accent,
+        foregroundColor: scheme.onPrimary,
+        minimumSize: const Size(48, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: accent,
+        minimumSize: const Size(48, 48),
+        side: BorderSide(color: outline),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+    ),
+    iconTheme: IconThemeData(color: secondary),
+    cardTheme: CardThemeData(
+      color: card,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: outline),
+      ),
+    ),
+  );
+}
+
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const months = [
   'January',
@@ -60,78 +151,32 @@ class DwellApp extends StatelessWidget {
       return MaterialApp(
         title: 'Dwell · A happier home',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          scaffoldBackgroundColor: cream,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: sage,
-            primary: sage,
-            surface: cream,
-          ),
-          textTheme: TextTheme(
-            bodyMedium: TextStyle(color: ink, fontSize: 14),
-            bodyLarge: TextStyle(color: ink, fontSize: 16),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: surface,
-            contentPadding: const EdgeInsets.all(17),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: line),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: line),
-            ),
-          ),
-          filledButtonTheme: FilledButtonThemeData(
-            style: FilledButton.styleFrom(
-              backgroundColor: sage,
-              foregroundColor: Colors.white,
-              minimumSize: const Size(0, 54),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-            ),
-          ),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: sage,
-              minimumSize: const Size(0, 50),
-              side: BorderSide(color: line),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-          dividerColor: line,
+        theme: _dwellTheme(Brightness.light),
+        darkTheme: _dwellTheme(Brightness.dark),
+        themeMode: ThemeMode.values.firstWhere(
+          (mode) => mode.name == store.colorMode,
+          orElse: () => ThemeMode.system,
         ),
-        themeMode: store.darkMode ? ThemeMode.dark : ThemeMode.light,
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          brightness: Brightness.dark,
-          scaffoldBackgroundColor: cream,
-          colorScheme: ColorScheme.fromSeed(
-            brightness: Brightness.dark,
-            seedColor: sage,
-            primary: sage,
-            surface: cream,
-          ),
+        home: Builder(
+          builder: (context) {
+            _darkPalette = Theme.of(context).brightness == Brightness.dark;
+            if (!store.ready) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return store.user == null
+                ? AuthPage(store: store)
+                : HomePage(store: store);
+          },
         ),
-        home: !store.ready
-            ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-            : store.user == null
-            ? AuthPage(store: store)
-            : HomePage(store: store),
       );
     },
   );
 }
 
 class HomeMark extends StatelessWidget {
-  const HomeMark({super.key, this.size = 42, this.light = false});
+  const HomeMark({super.key, this.size = 36, this.light = false});
   final double size;
   final bool light;
   @override
@@ -140,14 +185,48 @@ class HomeMark extends StatelessWidget {
     height: size,
     decoration: BoxDecoration(
       color: light ? Colors.white.withValues(alpha: .16) : sage,
-      borderRadius: BorderRadius.circular(size * .3),
+      borderRadius: BorderRadius.circular(size * 8 / 48),
     ),
     child: Stack(
       alignment: Alignment.center,
       children: [
-        Icon(Icons.home_rounded, color: Colors.white, size: size * .66),
+        Icon(Icons.home_rounded, color: Colors.white, size: size * .62),
       ],
     ),
+  );
+}
+
+class DwellLogo extends StatelessWidget {
+  const DwellLogo({super.key, this.light = false, this.size = 23});
+  final bool light;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const HomeMark(),
+      const SizedBox(width: 10),
+      Text.rich(
+        TextSpan(
+          text: 'dwell',
+          style: TextStyle(
+            fontSize: size,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -1.1,
+            color: light || Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black,
+          ),
+          children: [
+            TextSpan(
+              text: '.',
+              style: TextStyle(color: sage),
+            ),
+          ],
+        ),
+      ),
+    ],
   );
 }
 
@@ -165,6 +244,99 @@ Text caption(String text, {Color? color}) => Text(
   text,
   style: TextStyle(color: color ?? muted, fontSize: 13, height: 1.5),
 );
+
+Widget pageIntro(
+  String eyebrow,
+  String title,
+  String subtitle, {
+  IconData? trailing,
+  VoidCallback? onEyebrowTap,
+}) => Padding(
+  padding: const EdgeInsets.only(bottom: 29),
+  child: LayoutBuilder(
+    builder: (context, constraints) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onEyebrowTap,
+          borderRadius: BorderRadius.circular(5),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: sage,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Text(
+                  eyebrow.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: muted,
+                    letterSpacing: 1.6,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (onEyebrowTap != null) ...[
+                  const SizedBox(width: 3),
+                  Icon(Icons.keyboard_arrow_down, size: 15, color: muted),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  text: title,
+                  style: TextStyle(
+                    fontSize: constraints.maxWidth < 600 ? 32 : 40,
+                    height: 1.17,
+                    letterSpacing: -1.5,
+                    fontWeight: FontWeight.w600,
+                    color: ink,
+                  ),
+                  children: title.endsWith('.')
+                      ? const []
+                      : [
+                          TextSpan(
+                            text: '.',
+                            style: TextStyle(color: sage),
+                          ),
+                        ],
+                ),
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: 10),
+              Icon(
+                trailing,
+                color: greenAccent,
+                size: constraints.maxWidth < 600 ? 28 : 34,
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          subtitle,
+          style: TextStyle(fontSize: 13, color: muted, height: 1.7),
+        ),
+      ],
+    ),
+  ),
+);
+
 Widget gap([double height = 16]) => SizedBox(height: height);
 void toast(BuildContext context, String text) =>
     ScaffoldMessenger.of(context).showSnackBar(
@@ -353,9 +525,7 @@ class _AuthPageState extends State<AuthPage> {
                   children: [
                     Row(
                       children: [
-                        const HomeMark(size: 48),
-                        const SizedBox(width: 12),
-                        heading('dwell', size: 34),
+                        const DwellLogo(size: 23),
                         const Spacer(),
                         IconButton(
                           tooltip: 'Server connection',
@@ -365,27 +535,47 @@ class _AuthPageState extends State<AuthPage> {
                       ],
                     ),
                     gap(38),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: leaf,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Text(
-                        'A LITTLE TEAMWORK. A HAPPIER HOME.',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.1,
-                          color: sage,
+                    Row(
+                      children: [
+                        Container(
+                          width: 5,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: sage,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'A LITTLE TEAMWORK',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.6,
+                            color: muted,
+                          ),
+                        ),
+                      ],
                     ),
                     gap(18),
-                    heading('Make room for\nthe good stuff.', size: 43),
+                    Text.rich(
+                      TextSpan(
+                        text: 'Make room for\nthe good stuff',
+                        style: TextStyle(
+                          fontSize: 39,
+                          height: 1.17,
+                          letterSpacing: -1.5,
+                          fontWeight: FontWeight.w600,
+                          color: ink,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: '.',
+                            style: TextStyle(color: sage),
+                          ),
+                        ],
+                      ),
+                    ),
                     gap(14),
                     caption(
                       'Less chasing chores. More feeling at home.\nShare the everyday with your favorite people.',
@@ -569,54 +759,93 @@ class _HomePageState extends State<HomePage> {
           children: [
             if (wide)
               Container(
-                width: 220,
+                width: 230,
                 decoration: BoxDecoration(
                   color: surface,
                   border: Border(right: BorderSide(color: line)),
                 ),
-                padding: const EdgeInsets.fromLTRB(20, 36, 20, 24),
+                padding: const EdgeInsets.fromLTRB(22, 32, 22, 22),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const HomeMark(),
-                        const SizedBox(width: 10),
-                        heading('dwell', size: 30),
-                      ],
+                    const DwellLogo(size: 23),
+                    const SizedBox(height: 10),
+                    caption(
+                      'A LITTLE TEAMWORK. A HAPPIER HOME.',
+                      color: muted,
                     ),
-                    gap(50),
+                    const SizedBox(height: 54),
+                    Text(
+                      'YOUR HOME',
+                      style: TextStyle(
+                        color: muted,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.6,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     for (var i = 0; i < 3; i++)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.only(bottom: 7),
                         child: Material(
-                          color: Colors.transparent,
-                          child: ListTile(
-                            selected: page == i,
-                            selectedTileColor: leaf,
-                            selectedColor: sage,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            leading: Icon(
-                              [
-                                Icons.space_dashboard_outlined,
-                                Icons.checklist_rounded,
-                                Icons.people_outline,
-                              ][i],
-                            ),
-                            title: Text(['Overview', 'Chores', 'Household'][i]),
+                          color: page == i
+                              ? sage.withValues(alpha: _darkPalette ? .18 : .12)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
                             onTap: () => setState(() => page = i),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 15,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    [
+                                      Icons.space_dashboard_outlined,
+                                      Icons.checklist_outlined,
+                                      Icons.people_outline,
+                                    ][i],
+                                    size: 19,
+                                    color: page == i
+                                        ? sage
+                                        : muted,
+                                  ),
+                                  const SizedBox(width: 13),
+                                  Expanded(
+                                    child: Text(
+                                      ['Overview', 'Chores', 'Household'][i],
+                                      style: TextStyle(
+                                        color: page == i
+                                            ? ink
+                                            : muted,
+                                        fontSize: 13,
+                                        fontWeight: page == i
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                      ),
+                                    ),
+                                  ),
+                                  if (page == i)
+                                    Icon(
+                                      Icons.circle,
+                                      size: 5,
+                                      color: sage,
+                                    ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     const Spacer(),
-                    caption('A little teamwork.\nA happier home.'),
-                    gap(20),
-                    OutlinedButton.icon(
-                      onPressed: settings,
-                      icon: Icon(Icons.settings_outlined, size: 18),
-                      label: const Text('Settings'),
+                    const SizedBox(height: 18),
+                    Text(
+                      '●  A little teamwork. A happier home.',
+                      style: TextStyle(color: muted, fontSize: 8),
                     ),
                   ],
                 ),
@@ -711,22 +940,20 @@ class _HomePageState extends State<HomePage> {
           : NavigationBar(
               height: 72,
               backgroundColor: surface,
-              indicatorColor: leaf,
+              indicatorColor: sage.withValues(alpha: _darkPalette ? .22 : .14),
               selectedIndex: page,
               onDestinationSelected: (i) => setState(() => page = i),
               destinations: const [
                 NavigationDestination(
                   icon: Icon(Icons.space_dashboard_outlined),
-                  selectedIcon: Icon(Icons.space_dashboard_rounded),
                   label: 'Overview',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.checklist_rounded),
+                  icon: Icon(Icons.checklist_outlined),
                   label: 'Chores',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.people_outline),
-                  selectedIcon: Icon(Icons.people_rounded),
                   label: 'Household',
                 ),
               ],
@@ -737,96 +964,108 @@ class _HomePageState extends State<HomePage> {
               onPressed: busy ? null : () => editChore(),
               backgroundColor: sage,
               foregroundColor: Colors.white,
-              elevation: 2,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               icon: Icon(Icons.add_rounded),
               label: const Text('Add chore'),
             ),
     );
   }
 
-  Widget header(bool wide) => Padding(
-    padding: EdgeInsets.fromLTRB(wide ? 40 : 22, 16, wide ? 40 : 22, 14),
+  Widget header(bool wide) => Container(
+    height: 68,
+    padding: EdgeInsets.symmetric(horizontal: wide ? 34 : 20),
+    decoration: BoxDecoration(
+      border: Border(bottom: BorderSide(color: line)),
+    ),
     child: Row(
       children: [
-        if (!wide) ...[const HomeMark(size: 34), const SizedBox(width: 10)],
-        Expanded(
-          child: InkWell(
-            onTap: store.households.isEmpty || store.offline
-                ? null
-                : switchHousehold,
-            borderRadius: BorderRadius.circular(8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        store.offline
-                            ? 'YOUR OFFLINE HOME'
-                            : 'YOUR SHARED SPACE',
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: muted,
-                          letterSpacing: 1.3,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        store.household?['name'] as String? ??
-                            'Welcome to Dwell',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: ink,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 6),
-                if (store.households.isNotEmpty && !store.offline)
-                  Icon(Icons.keyboard_arrow_down, color: muted, size: 18),
-              ],
+        if (wide) ...[
+          Text(
+            'YOUR HOME',
+            style: TextStyle(
+              fontSize: 9,
+              color: muted,
+              letterSpacing: 1.1,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13),
+            child: Text('/', style: TextStyle(color: muted)),
+          ),
+          Text(
+            ['Overview', 'Chores', 'Household'][page],
+            style: TextStyle(
+              fontSize: 11,
+              color: ink,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(color: sage, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'A little teamwork',
+            style: TextStyle(fontSize: 10, color: muted),
+          ),
+          const SizedBox(width: 20),
+        ] else ...[
+          const DwellLogo(size: 23),
+          const Spacer(),
+        ],
         IconButton(
-          tooltip: store.darkMode
-              ? 'Switch to light mode'
-              : 'Switch to dark mode',
-          onPressed: () => run(() => store.setDarkMode(!store.darkMode)),
+          tooltip: _darkPalette
+              ? 'Switch to light theme'
+              : 'Switch to dark theme',
+          onPressed: () =>
+              run(() => store.setColorMode(_darkPalette ? 'light' : 'dark')),
           icon: Icon(
-            store.darkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-            size: 20,
+            _darkPalette
+                ? TemplateIcons.lightModeOutlined
+                : TemplateIcons.darkModeOutlined,
+            size: 21,
             color: muted,
           ),
         ),
         IconButton(
-          tooltip: 'Refresh household',
-          onPressed: busy ? null : () => run(store.refresh),
-          icon: Icon(Icons.sync_rounded, size: 20, color: muted),
-        ),
-        IconButton(
-          tooltip: 'Account and settings',
+          tooltip: 'Open settings',
           onPressed: settings,
-          padding: EdgeInsets.zero,
-          icon: CircleAvatar(
-            radius: 20,
-            backgroundColor: mintSoft,
+          icon: const Icon(TemplateIcons.settings, size: 21),
+        ),
+        if (!wide) ...[
+          IconButton(
+            tooltip: 'Refresh household',
+            onPressed: busy ? null : () => run(store.refresh),
+            icon: Icon(Icons.refresh_outlined, size: 18, color: muted),
+          ),
+        ] else ...[
+          const SizedBox(width: 12),
+          IconButton(
+            tooltip: 'Refresh household',
+            onPressed: busy ? null : () => run(store.refresh),
+            icon: Icon(Icons.refresh_outlined, size: 18, color: muted),
+          ),
+          const SizedBox(width: 8),
+          CircleAvatar(
+            radius: 17,
+            backgroundColor: sage.withValues(alpha: _darkPalette ? .18 : .12),
             child: Text(
-              store.firstName.substring(0, 1).toUpperCase(),
+              store.firstName.substring(0, 1).toLowerCase(),
               style: TextStyle(
                 color: sage,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-        ),
+        ],
       ],
     ),
   );
@@ -867,105 +1106,27 @@ class _HomePageState extends State<HomePage> {
     final main = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  caption(
-                    '${weekdays[DateTime.now().weekday - 1]}, ${DateTime.now().day} ${months[DateTime.now().month - 1]}',
-                  ),
-                  gap(8),
-                  heading(
-                    'Hey ${store.firstName},\nlet’s make home happy.',
-                    size: wide ? 34 : 30,
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 30),
-              child: Icon(
-                Icons.wb_sunny_outlined,
-                color: greenAccent,
-                size: 35,
-              ),
-            ),
-          ],
+        pageIntro(
+          store.offline ? 'YOUR OFFLINE HOME' : 'YOUR SHARED SPACE',
+          'Hey ${store.firstName},\nlet’s make home happy',
+          '${store.household?['name'] ?? 'Your home'} · ${weekdays[DateTime.now().weekday - 1]}, ${DateTime.now().day} ${months[DateTime.now().month - 1]}',
+          trailing: Icons.wb_sunny_outlined,
+          onEyebrowTap: store.households.isEmpty || store.offline
+              ? null
+              : switchHousehold,
         ),
-        gap(24),
-        Container(
-          padding: const EdgeInsets.all(23),
-          decoration: BoxDecoration(
-            color: sage,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'A LITTLE BETTER, TOGETHER',
-                      style: TextStyle(
-                        color: Color(0xFFC6DDCA),
-                        fontSize: 9,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    gap(12),
-                    heading(
-                      todayChores.isEmpty
-                          ? 'A little room to breathe.'
-                          : done == todayChores.length
-                          ? 'Look at you go!'
-                          : 'Small chores.\nBig difference.',
-                      size: 25,
-                      color: Colors.white,
-                    ),
-                    gap(12),
-                    Text(
-                      todayChores.isEmpty
-                          ? 'Your home is all caught up today.'
-                          : '$done of ${todayChores.length} chores done today',
-                      style: TextStyle(color: Color(0xFFDCEBDD), fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              SizedBox(
-                width: 79,
-                height: 79,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox.expand(
-                      child: CircularProgressIndicator(
-                        value: progress,
-                        strokeWidth: 6,
-                        backgroundColor: Colors.white.withValues(alpha: .16),
-                        color: const Color(0xFFB9D9C0),
-                        strokeCap: StrokeCap.round,
-                      ),
-                    ),
-                    Text(
-                      '${(progress * 100).round()}%',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        gap(18),
+        _DwellFutureCard(
+          title: todayChores.isEmpty
+              ? 'A little room to breathe.'
+              : done == todayChores.length
+              ? 'Look at you go!'
+              : 'Small chores. Big difference.',
+          subtitle: todayChores.isEmpty
+              ? 'Your home is all caught up today.'
+              : '$done chores completed today',
+          progress: progress,
+          onOpenChores: () => setState(() => page = 1),
         ),
         gap(26),
         Row(
@@ -1055,7 +1216,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: mintSoft,
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1167,10 +1328,15 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        heading('A place for every chore.'),
-        gap(10),
-        caption('Share the load. Keep the good energy.'),
-        gap(24),
+        pageIntro(
+          'YOUR HOME',
+          'A place for every chore',
+          'Share the load. Keep the good energy.',
+          trailing: Icons.checklist_outlined,
+          onEyebrowTap: store.households.length > 1 && !store.offline
+              ? switchHousehold
+              : null,
+        ),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -1186,7 +1352,7 @@ class _HomePageState extends State<HomePage> {
                     color: filter == label ? sage.withValues(alpha: .3) : line,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(9),
                   ),
                 ),
               )
@@ -1218,14 +1384,14 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
         color: chore.done ? mintSoft : surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: busy ? null : () => editChore(chore: chore),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           child: Container(
             padding: const EdgeInsets.fromLTRB(14, 16, 8, 16),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(color: line),
             ),
             child: Row(
@@ -1235,7 +1401,7 @@ class _HomePageState extends State<HomePage> {
                   height: 46,
                   decoration: BoxDecoration(
                     color: tint,
-                    borderRadius: BorderRadius.circular(13),
+                    borderRadius: BorderRadius.circular(15),
                   ),
                   child: Icon(roomIcon(chore.room), size: 23, color: sage),
                 ),
@@ -1351,7 +1517,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: surface,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: line),
       ),
       child: Column(
@@ -1419,10 +1585,12 @@ class _HomePageState extends State<HomePage> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          heading('Your offline home.'),
-          gap(10),
-          caption('Your chores stay saved on this device.'),
-          gap(26),
+          pageIntro(
+            'YOUR OFFLINE HOME',
+            'Your home, close at hand',
+            'Your chores stay saved on this device.',
+            trailing: Icons.offline_bolt_outlined,
+          ),
           householdSummary(),
           gap(20),
           Container(
@@ -1430,7 +1598,7 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: leaf,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1451,10 +1619,13 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        heading('Better under one roof.'),
-        gap(10),
-        caption('Your people. Your space. Your shared rhythm.'),
-        gap(26),
+        pageIntro(
+          'YOUR SHARED SPACE',
+          'Better under one roof',
+          'Your people. Your space. Your shared rhythm.',
+          trailing: Icons.people_outline,
+          onEyebrowTap: store.households.length > 1 ? switchHousehold : null,
+        ),
         householdSummary(),
         gap(20),
         Container(
@@ -1462,7 +1633,7 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: leaf,
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1665,74 +1836,348 @@ class _HomePageState extends State<HomePage> {
   Future<void> settings() async {
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: cream,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              heading('Your little corner', size: 25),
-              gap(10),
-              Text(
-                store.user!['name'] as String,
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              caption(store.user!['email'] as String),
-              gap(20),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.dns_outlined, color: sage),
-                title: const Text('Server connection'),
-                subtitle: Text(
-                  store.offline
-                      ? 'Offline · saved on this device'
-                      : store.demo
-                      ? 'Demo preview'
-                      : store.server,
-                  style: TextStyle(fontSize: 12),
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: false,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      constraints: const BoxConstraints(maxWidth: 640),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          final sheetTheme = _dwellTheme(
+            _darkPalette ? Brightness.dark : Brightness.light,
+          );
+          final scheme = sheetTheme.colorScheme;
+          final bottomInset = MediaQuery.viewPaddingOf(sheetContext).bottom;
+          Widget colorModeSelector() => SegmentedButton<ThemeMode>(
+            showSelectedIcon: false,
+            segments: const [
+              ButtonSegment(
+                value: ThemeMode.system,
+                icon: Tooltip(
+                  message: 'Follow device appearance',
+                  child: Icon(TemplateIcons.systemAppearance),
                 ),
-                trailing: Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  serverSheet(context, store);
-                },
               ),
-              const Divider(),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.privacy_tip_outlined, color: sage),
-                title: const Text('Privacy policy'),
-                trailing: const Icon(Icons.open_in_new, size: 18),
-                onTap: () async {
-                  final uri = Uri.parse(
-                    'https://jan-lederer.github.io/Household/',
-                  );
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                },
-              ),
-              const Divider(),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.logout_rounded, color: sage),
-                title: Text(
-                  store.offline
-                      ? 'Exit offline mode'
-                      : store.demo
-                      ? 'Leave demo home'
-                      : 'Sign out',
+              ButtonSegment(
+                value: ThemeMode.light,
+                icon: Tooltip(
+                  message: 'Use light appearance',
+                  child: Icon(TemplateIcons.lightAppearance),
                 ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  run(store.signOut);
-                },
               ),
-              gap(10),
-              caption('Dwell 1.2 · A little teamwork. A happier home.'),
+              ButtonSegment(
+                value: ThemeMode.dark,
+                icon: Tooltip(
+                  message: 'Use dark appearance',
+                  child: Icon(TemplateIcons.darkAppearance),
+                ),
+              ),
             ],
-          ),
-        ),
+            selected: {
+              ThemeMode.values.firstWhere(
+                (mode) => mode.name == store.colorMode,
+                orElse: () => ThemeMode.system,
+              ),
+            },
+            onSelectionChanged: (selection) async {
+              await store.setColorMode(selection.first.name);
+              setSheetState(() {});
+            },
+          );
+
+          Widget section(String title, Widget child, {String? subtitle}) =>
+              Container(
+                margin: const EdgeInsets.only(bottom: 13),
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: scheme.outlineVariant),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 12,
+                          height: 1.45,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    child,
+                  ],
+                ),
+              );
+          Widget infoRow(String label, String value) => Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  value,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          );
+
+          return Padding(
+            padding: EdgeInsets.fromLTRB(12, 0, 12, 12 + bottomInset),
+            child: Theme(
+              data: sheetTheme,
+              child: Material(
+                color: scheme.surface,
+                surfaceTintColor: Colors.transparent,
+                clipBehavior: Clip.antiAlias,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(28),
+                    bottom: Radius.circular(28),
+                  ),
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight:
+                        (MediaQuery.sizeOf(sheetContext).height - bottomInset) *
+                        .9,
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: scheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 14, 12, 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Settings',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -.6,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    'Tune the look and feel of your app.',
+                                    style: TextStyle(
+                                      color: scheme.onSurfaceVariant,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Close settings',
+                              onPressed: () => Navigator.pop(sheetContext),
+                              icon: const Icon(TemplateIcons.close),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Divider(height: 1, color: scheme.outlineVariant),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 560),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  section(
+                                    'Color mode',
+                                    colorModeSelector(),
+                                    subtitle:
+                                        'Follow the device or choose a theme.',
+                                  ),
+                                  section(
+                                    'App identity',
+                                    Column(
+                                      children: [
+                                        infoRow('Display name', 'Dwell'),
+                                        const SizedBox(height: 8),
+                                        infoRow(
+                                          'Package ID',
+                                          'com.dwell.dwell',
+                                        ),
+                                        const SizedBox(height: 8),
+                                        infoRow('Version', '1.2.0'),
+                                        const SizedBox(height: 14),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: OutlinedButton.icon(
+                                                onPressed: () async {
+                                                  final uri = Uri.parse(
+                                                    'https://jan-lederer.github.io/Household/',
+                                                  );
+                                                  await launchUrl(
+                                                    uri,
+                                                    mode: LaunchMode
+                                                        .externalApplication,
+                                                  );
+                                                },
+                                                icon: const Icon(
+                                                  TemplateIcons.privacy,
+                                                  size: 18,
+                                                ),
+                                                label: const Text(
+                                                  'Privacy policy',
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            IconButton(
+                                              tooltip: 'Open-source licenses',
+                                              onPressed: () => showLicensePage(
+                                                context: sheetContext,
+                                                applicationName: 'Dwell',
+                                                applicationVersion: '1.2.0',
+                                                applicationLegalese:
+                                                    'Material Icons by Google. CC BY 4.0: '
+                                                    'https://creativecommons.org/licenses/by/4.0/',
+                                              ),
+                                              icon: const Icon(
+                                                TemplateIcons.licenses,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    subtitle: 'App details and links.',
+                                  ),
+                                  section(
+                                    'Account',
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          store.user!['name'] as String,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          store.user!['email'] as String,
+                                          style: TextStyle(
+                                            color: scheme.onSurfaceVariant,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    subtitle: 'Your household profile.',
+                                  ),
+                                  section(
+                                    'Household connection',
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: Icon(
+                                          Icons.dns_outlined,
+                                          color: scheme.primary,
+                                        ),
+                                        title: const Text('Server connection'),
+                                        subtitle: Text(
+                                          store.offline
+                                              ? 'Offline · saved on this device'
+                                              : store.demo
+                                              ? 'Demo preview'
+                                              : store.server,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        trailing: Icon(
+                                          Icons.chevron_right_rounded,
+                                          color: scheme.onSurfaceVariant,
+                                        ),
+                                        onTap: () {
+                                          Navigator.pop(sheetContext);
+                                          Future<void>.delayed(
+                                            const Duration(milliseconds: 180),
+                                            () {
+                                              if (!mounted) return;
+                                              serverSheet(context, store);
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    leading: Icon(
+                                      Icons.logout_rounded,
+                                      color: scheme.primary,
+                                    ),
+                                    title: Text(
+                                      store.offline
+                                          ? 'Exit offline mode'
+                                          : store.demo
+                                          ? 'Leave demo home'
+                                          : 'Sign out',
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(sheetContext);
+                                      run(store.signOut);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -1961,7 +2406,7 @@ class _ChoreSheetState extends State<ChoreSheet> {
                   IconButton(
                     tooltip: 'Close editor',
                     onPressed: busy ? null : () => Navigator.pop(context),
-                    icon: Icon(Icons.close_rounded),
+                    icon: Icon(TemplateIcons.close),
                   ),
                 ],
               ),
@@ -2112,4 +2557,166 @@ class _ChoreSheetState extends State<ChoreSheet> {
       ),
     ),
   );
+}
+
+class _DwellFutureCard extends StatelessWidget {
+  const _DwellFutureCard({
+    required this.title,
+    required this.subtitle,
+    required this.progress,
+    required this.onOpenChores,
+  });
+
+  final String title;
+  final String subtitle;
+  final double progress;
+  final VoidCallback onOpenChores;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final base = scheme.surfaceContainerLow;
+    final glow = Color.lerp(base, scheme.primary, 0.2)!;
+    final orbit = Color.lerp(base, scheme.tertiary, 0.14)!;
+    final percentage = (progress * 100).round();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(26),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [glow, base, orbit],
+            stops: const [0, 0.58, 1],
+          ),
+          border: Border.all(color: scheme.primary.withValues(alpha: 0.32)),
+          borderRadius: BorderRadius.circular(26),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -44,
+              top: -55,
+              child: Container(
+                width: 170,
+                height: 170,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: scheme.primary.withValues(alpha: 0.08),
+                ),
+              ),
+            ),
+            Positioned(
+              right: -13,
+              top: -24,
+              child: Container(
+                width: 136,
+                height: 136,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: scheme.tertiary.withValues(alpha: 0.2),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: scheme.surface.withValues(alpha: 0.78),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      'FUTURE-READY HOME KIT',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.65,
+                                height: 1.12,
+                              ),
+                            ),
+                            const SizedBox(height: 9),
+                            Text(
+                              subtitle,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                height: 1.45,
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            FilledButton.icon(
+                              onPressed: onOpenChores,
+                              icon: const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 19,
+                              ),
+                              label: const Text('Open chores'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      SizedBox(
+                        width: 66,
+                        height: 66,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox.expand(
+                              child: CircularProgressIndicator(
+                                value: progress,
+                                strokeWidth: 5,
+                                backgroundColor: scheme.primary.withValues(
+                                  alpha: 0.12,
+                                ),
+                                color: scheme.primary,
+                                strokeCap: StrokeCap.round,
+                              ),
+                            ),
+                            Text(
+                              '$percentage%',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

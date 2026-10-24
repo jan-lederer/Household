@@ -424,12 +424,24 @@ void main() {
     addTearDown(store.dispose);
     await tester.pumpWidget(DwellApp(store: store));
 
-    await tester.tap(find.byTooltip('Switch to dark mode'));
+    Color wordmarkColor() {
+      final logoText = tester.widget<Text>(
+        find.descendant(
+          of: find.byType(DwellLogo),
+          matching: find.byType(Text),
+        ).first,
+      );
+      return (logoText.textSpan! as TextSpan).style!.color!;
+    }
+
+    expect(wordmarkColor(), Colors.black);
+    await tester.tap(find.byTooltip('Switch to dark theme'));
     await tester.pumpAndSettle();
 
+    expect(wordmarkColor(), Colors.white);
     expect(store.darkMode, isTrue);
     expect(values['darkMode'], 'true');
-    expect(find.byTooltip('Switch to light mode'), findsOneWidget);
+    expect(find.byTooltip('Switch to light theme'), findsOneWidget);
     expect(
       tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
       ThemeMode.dark,
@@ -508,7 +520,32 @@ void main() {
         expect(await output.length(), greaterThan(10000));
       });
     }
+    tester.view.physicalSize = const Size(430, 932);
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: repaintKey,
+        child: DwellApp(store: store),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Open settings'));
+    await tester.pumpAndSettle();
+    final settingsBoundary = tester.renderObject<RenderRepaintBoundary>(
+      find.byKey(repaintKey),
+    );
+    await tester.runAsync(() async {
+      final image = await settingsBoundary.toImage(pixelRatio: 1);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      final output = File('artifacts/dwell-settings.png');
+      await output.parent.create(recursive: true);
+      await output.writeAsBytes(bytes!.buffer.asUint8List());
+      image.dispose();
+      expect(await output.length(), greaterThan(10000));
+    });
+    await tester.tap(find.byTooltip('Close settings'));
+    await tester.pumpAndSettle();
     store.darkMode = true;
+    store.notifyListeners();
     tester.view.physicalSize = const Size(430, 932);
     await tester.pumpWidget(
       RepaintBoundary(
@@ -534,6 +571,11 @@ void main() {
       });
     }
 
+    await tester.tap(find.byTooltip('Open settings'));
+    await tester.pumpAndSettle();
+    await captureDark(['screenshots/dwell-settings-dark.png']);
+    await tester.tap(find.byTooltip('Close settings'));
+    await tester.pumpAndSettle();
     await captureDark([
       'artifacts/dwell-dark.png',
       'screenshots/dwell-overview-dark.png',

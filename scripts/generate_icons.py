@@ -6,7 +6,7 @@ import struct
 import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
-GREEN, WHITE = (63, 128, 82), (255, 255, 255)
+GREEN, WHITE = (40, 122, 90), (255, 255, 255)
 
 
 def inside_polygon(x, y, points):

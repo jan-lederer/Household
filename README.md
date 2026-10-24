@@ -2,7 +2,7 @@
 
 Dwell helps people in an apartment share chores, assign work to housemates, and keep recurring tasks moving. The Flutter app pairs with a small SQLite-backed API and uses a simple white home mark on a green tile, with a calm green interface.
 
-Use the sun/moon button in the home header to switch between light and dark themes. Your choice is saved on the device.
+Open Settings to choose System, Light, or Dark appearance. The home header keeps a quick light/dark toggle, and the selected mode is saved on the device.
 
 The green home launcher icon has transparent rounded corners; maskable web icons use a full-bleed green background for clean install previews.
 
@@ -13,6 +13,10 @@ Captured at 430 × 932 in the demo home.
 | Overview · dark | Chores · dark |
 | --- | --- |
 | ![Dwell overview in dark mode](screenshots/dwell-overview-dark.png) | ![Dwell chores list in dark mode](screenshots/dwell-chores-dark.png) |
+
+| Shared settings · dark |
+| --- |
+| ![Dwell settings with the shared color mode and app identity cards in dark mode](screenshots/dwell-settings-dark.png) |
 
 ## Local setup
 
@@ -79,3 +83,12 @@ python3 Household/scripts/deploy_host.py
 The script preserves existing worker targets, backs up its private configuration, adds `dwell`, restarts the idle worker, and queues its deployment. It uses `Dockerfile.host` with the existing verified `build/web` assets, so the host needs no Flutter SDK. It saves the accepted job UUID before waiting, checks the terminal result, published host port and API health, and writes results under `artifacts/deployment-result.json`. It refuses to restart the worker while jobs are queued/running. On this installation the full command is `python3 /home/jan/projects/code/Household/scripts/deploy_host.py`.
 
 After this one-time registration, save `pocket-docker deploy dwell` in this project's Deployment settings. Future deployments can run directly from the phone. The app's server address is `http://SAME_HOST_AS_POCKET_CODEX:8081`. Host health endpoint: `http://127.0.0.1:8081/api/health`. The worker's private allowlist is outside the app container, so workspace edits alone cannot activate the port mapping.
+
+## Shared template icons
+
+The common toolbar and Settings icons use `TemplateIcons` from
+`lib/template_icons.dart`, mapped to the same built-in Material glyphs used by
+Template. A small licensed Material Icons subset is also retained at
+`assets/icons/template-material-icons.ttf` for derived app surfaces. It permits
+commercial use under CC BY 4.0; the license and attribution are in
+`assets/icons/MaterialIcons_LICENSE.txt` and `THIRD_PARTY_NOTICES.md`.

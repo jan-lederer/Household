@@ -49,11 +49,15 @@ class DwellStore extends ChangeNotifier {
   static const _offlineDataKey = 'offlineData';
   static const _offlineModeKey = 'offlineMode';
   static const _darkModeKey = 'darkMode';
+  static const _colorModeKey = 'colorMode';
   String? _token;
   Map<String, dynamic>? user, household;
   List<Map<String, dynamic>> households = [], members = [];
   List<Chore> chores = [];
-  bool ready = false, demo = false, offline = false, darkMode = false;
+  bool ready = false, demo = false, offline = false;
+  String colorMode = 'system';
+  bool get darkMode => colorMode == 'dark';
+  set darkMode(bool enabled) => colorMode = enabled ? 'dark' : 'light';
   String? startupError;
   String get userId => user?['id'] as String? ?? '';
   String get firstName =>
@@ -80,7 +84,7 @@ class DwellStore extends ChangeNotifier {
     try {
       server = await _storage.read(key: 'server') ?? server;
       offline = await _storage.read(key: _offlineModeKey) == 'true';
-      darkMode = await _storage.read(key: _darkModeKey) == 'true';
+      await _loadColorMode();
       if (offline) {
         await _loadOfflineHome();
       } else {
@@ -94,15 +98,35 @@ class DwellStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadDarkMode() async {
-    darkMode = await _storage.read(key: _darkModeKey) == 'true';
+  Future<void> _loadColorMode() async {
+    final saved = await _storage.read(key: _colorModeKey);
+    if (saved == 'system' || saved == 'light' || saved == 'dark') {
+      colorMode = saved!;
+      return;
+    }
+    final legacy = await _storage.read(key: _darkModeKey);
+    colorMode = legacy == null
+        ? 'system'
+        : legacy == 'true'
+        ? 'dark'
+        : 'light';
   }
 
-  Future<void> setDarkMode(bool enabled) async {
-    await _storage.write(key: _darkModeKey, value: enabled ? 'true' : 'false');
-    darkMode = enabled;
+  Future<void> loadDarkMode() async => _loadColorMode();
+
+  Future<void> setColorMode(String mode) async {
+    if (mode != 'system' && mode != 'light' && mode != 'dark') return;
+    await _storage.write(key: _colorModeKey, value: mode);
+    await _storage.write(
+      key: _darkModeKey,
+      value: mode == 'dark' ? 'true' : 'false',
+    );
+    colorMode = mode;
     notifyListeners();
   }
+
+  Future<void> setDarkMode(bool enabled) =>
+      setColorMode(enabled ? 'dark' : 'light');
 
   Future<dynamic> request(
     String method,
