@@ -9,6 +9,4 @@ abstract final class TemplateIcons {
   static const IconData close = Icons.close_rounded;
   static const IconData privacy = Icons.privacy_tip_outlined;
   static const IconData licenses = Icons.policy_outlined;
-  static const IconData darkModeOutlined = Icons.dark_mode_outlined;
-  static const IconData lightModeOutlined = Icons.light_mode_outlined;
 }

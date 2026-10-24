@@ -411,7 +411,7 @@ void main() {
     store.dispose();
   });
 
-  testWidgets('header dark mode toggle updates and saves the preference', (
+  testWidgets('appearance defaults to system and is changed in settings', (
     tester,
   ) async {
     final values = <String, String>{};
@@ -424,27 +424,40 @@ void main() {
     addTearDown(store.dispose);
     await tester.pumpWidget(DwellApp(store: store));
 
-    Color wordmarkColor() {
-      final logoText = tester.widget<Text>(
-        find.descendant(
-          of: find.byType(DwellLogo),
-          matching: find.byType(Text),
-        ).first,
-      );
-      return (logoText.textSpan! as TextSpan).style!.color!;
-    }
+    expect(store.colorMode, 'system');
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+      ThemeMode.system,
+    );
+    expect(find.byTooltip('Switch to dark theme'), findsNothing);
+    expect(find.byTooltip('Switch to light theme'), findsNothing);
 
-    expect(wordmarkColor(), Colors.black);
-    await tester.tap(find.byTooltip('Switch to dark theme'));
+    await tester.tap(find.byTooltip('Open settings'));
     await tester.pumpAndSettle();
+    expect(find.text('System'), findsNothing);
+    expect(find.text('Light'), findsNothing);
+    expect(find.text('Dark'), findsNothing);
+    expect(find.byTooltip('Follow device appearance'), findsOneWidget);
+    expect(find.byTooltip('Use light appearance'), findsOneWidget);
+    expect(find.byTooltip('Use dark appearance'), findsOneWidget);
 
-    expect(wordmarkColor(), Colors.white);
-    expect(store.darkMode, isTrue);
+    await tester.tap(find.byTooltip('Use dark appearance'));
+    await tester.pumpAndSettle();
+    expect(store.colorMode, 'dark');
+    expect(values['colorMode'], 'dark');
     expect(values['darkMode'], 'true');
-    expect(find.byTooltip('Switch to light theme'), findsOneWidget);
     expect(
       tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
       ThemeMode.dark,
+    );
+
+    await tester.tap(find.byTooltip('Follow device appearance'));
+    await tester.pumpAndSettle();
+    expect(store.colorMode, 'system');
+    expect(values['colorMode'], 'system');
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+      ThemeMode.system,
     );
   });
 

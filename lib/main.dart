@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'store.dart';
 import 'template_icons.dart';
 
+const appVersion = '1.2.2';
+
 bool _darkPalette = false;
 Color get ink =>
     _darkPalette ? const Color(0xFFF1F5FA) : const Color(0xFF172235);
@@ -94,9 +96,7 @@ ThemeData _dwellTheme(Brightness brightness) {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         textStyle: const TextStyle(fontWeight: FontWeight.w700),
       ),
     ),
@@ -770,10 +770,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const DwellLogo(size: 23),
                     const SizedBox(height: 10),
-                    caption(
-                      'A LITTLE TEAMWORK. A HAPPIER HOME.',
-                      color: muted,
-                    ),
+                    caption('A LITTLE TEAMWORK. A HAPPIER HOME.', color: muted),
                     const SizedBox(height: 54),
                     Text(
                       'YOUR HOME',
@@ -810,18 +807,14 @@ class _HomePageState extends State<HomePage> {
                                       Icons.people_outline,
                                     ][i],
                                     size: 19,
-                                    color: page == i
-                                        ? sage
-                                        : muted,
+                                    color: page == i ? sage : muted,
                                   ),
                                   const SizedBox(width: 13),
                                   Expanded(
                                     child: Text(
                                       ['Overview', 'Chores', 'Household'][i],
                                       style: TextStyle(
-                                        color: page == i
-                                            ? ink
-                                            : muted,
+                                        color: page == i ? ink : muted,
                                         fontSize: 13,
                                         fontWeight: page == i
                                             ? FontWeight.w600
@@ -830,11 +823,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                   if (page == i)
-                                    Icon(
-                                      Icons.circle,
-                                      size: 5,
-                                      color: sage,
-                                    ),
+                                    Icon(Icons.circle, size: 5, color: sage),
                                 ],
                               ),
                             ),
@@ -1020,20 +1009,6 @@ class _HomePageState extends State<HomePage> {
           const DwellLogo(size: 23),
           const Spacer(),
         ],
-        IconButton(
-          tooltip: _darkPalette
-              ? 'Switch to light theme'
-              : 'Switch to dark theme',
-          onPressed: () =>
-              run(() => store.setColorMode(_darkPalette ? 'light' : 'dark')),
-          icon: Icon(
-            _darkPalette
-                ? TemplateIcons.lightModeOutlined
-                : TemplateIcons.darkModeOutlined,
-            size: 21,
-            color: muted,
-          ),
-        ),
         IconButton(
           tooltip: 'Open settings',
           onPressed: settings,
@@ -2038,7 +2013,7 @@ class _HomePageState extends State<HomePage> {
                                           'com.dwell.dwell',
                                         ),
                                         const SizedBox(height: 8),
-                                        infoRow('Version', '1.2.0'),
+                                        infoRow('Version', appVersion),
                                         const SizedBox(height: 14),
                                         Row(
                                           children: [
@@ -2069,7 +2044,7 @@ class _HomePageState extends State<HomePage> {
                                               onPressed: () => showLicensePage(
                                                 context: sheetContext,
                                                 applicationName: 'Dwell',
-                                                applicationVersion: '1.2.0',
+                                                applicationVersion: appVersion,
                                                 applicationLegalese:
                                                     'Material Icons by Google. CC BY 4.0: '
                                                     'https://creativecommons.org/licenses/by/4.0/',

@@ -2,7 +2,7 @@
 
 Dwell helps people in an apartment share chores, assign work to housemates, and keep recurring tasks moving. The Flutter app pairs with a small SQLite-backed API and uses a simple white home mark on a green tile, with a calm green interface.
 
-Open Settings to choose System, Light, or Dark appearance. The home header keeps a quick light/dark toggle, and the selected mode is saved on the device.
+Appearance follows your device by default. Open Settings to choose System, Light, or Dark; your selection is saved on the device.
 
 The green home launcher icon has transparent rounded corners; maskable web icons use a full-bleed green background for clean install previews.
 
