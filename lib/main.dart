@@ -4,7 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'store.dart';
 import 'template_icons.dart';
 
-const appVersion = '1.2.2';
+const appVersion = '1.2.3';
 
 bool _darkPalette = false;
 Color get ink =>
@@ -2613,7 +2613,7 @@ class _DwellFutureCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(
-                      'FUTURE-READY HOME KIT',
+                      'DWELL HOME KIT',
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: scheme.primary,
                         fontWeight: FontWeight.w800,

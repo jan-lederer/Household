@@ -397,6 +397,9 @@ void main() {
     final store = DwellStore()..startDemo();
     await tester.pumpWidget(DwellApp(store: store));
 
+    expect(find.text('DWELL HOME KIT'), findsOneWidget);
+    expect(find.text('FUTURE-READY HOME KIT'), findsNothing);
+
     await tester.tap(find.text('Chores').last);
     await tester.pumpAndSettle();
     expect(find.text('Take out the recycling'), findsOneWidget);
